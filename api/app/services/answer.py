@@ -145,6 +145,7 @@ def answer_question(
         confidence=answer.confidence,
         retrieved=_refs(passages),
         provider=provider.name,
+        invalid_citations_removed=generation.citations_removed,
     )
 
     # --- cache only what is safe to serve to everyone ------------------------------------

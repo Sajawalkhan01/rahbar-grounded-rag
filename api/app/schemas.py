@@ -71,3 +71,4 @@ class AskResponse(BaseModel):
     retrieved: list[RetrievedRef]
     provider: str
     cached: bool = False
+    invalid_citations_removed: int = 0   # model citations that matched no retrieved passage
