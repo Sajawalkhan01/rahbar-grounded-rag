@@ -1,0 +1,11 @@
+# Local minikube: images are built with `make images` and loaded into the cluster, so they
+# carry the tag "dev" and are never pulled (imagePullPolicy: IfNotPresent in the base).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - egress-llm-host.yaml
+images:
+  - {name: rahbar-api, newTag: dev}
+  - {name: rahbar-indexer, newTag: dev}
+  - {name: rahbar-ui, newTag: dev}

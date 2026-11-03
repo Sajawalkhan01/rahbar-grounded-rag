@@ -1,0 +1,18 @@
+# Published images (Docker Hub), tagged with the commit SHA by .github/workflows/cd.yml:
+#   kustomize edit set image rahbar-api=docker.io/$USER/rahbar-api:$GITHUB_SHA   (and the others)
+# REPLACE_SHA is a placeholder so a prod render can never silently mean ":latest".
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - egress-hosted-llm.yaml
+images:
+  - {name: rahbar-api, newName: docker.io/DOCKERHUB_USER/rahbar-api, newTag: REPLACE_SHA}
+  - {name: rahbar-indexer, newName: docker.io/DOCKERHUB_USER/rahbar-indexer, newTag: REPLACE_SHA}
+  - {name: rahbar-ui, newName: docker.io/DOCKERHUB_USER/rahbar-ui, newTag: REPLACE_SHA}
+patches:
+  - target: {kind: ConfigMap, name: rahbar-config}
+    patch: |-
+      - {op: replace, path: /data/LLM_PROVIDER, value: hosted}
+      - {op: replace, path: /data/HOSTED_BASE_URL, value: "https://api.groq.com/openai/v1"}
+      - {op: replace, path: /data/LLM_MODEL, value: "llama-3.1-8b-instant"}

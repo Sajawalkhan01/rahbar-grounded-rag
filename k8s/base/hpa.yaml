@@ -1,0 +1,22 @@
+# Scales the api on CPU. Utilisation = usage / requests.cpu, so the api container MUST have a
+# CPU request (it has: api.yaml) and metrics-server must run (minikube addons enable
+# metrics-server); without either the HPA shows <unknown>/70% forever.
+# Limitation (docs/ENGINEERING-NOTES.md, question 3): while the model generates, the api is
+# waiting on I/O and its CPU stays low, so CPU is a weak signal for this service.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: rahbar
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 3
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 70}
