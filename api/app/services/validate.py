@@ -67,7 +67,8 @@ def generate_validated(
             return Generation(answer, attempt, citations=valid, citations_removed=removed)
         except (ValidationError, ValueError, ProviderError) as exc:
             last_error = f"{type(exc).__name__}: {str(exc)[:300]}"
+            outcome = "retry" if attempt < MAX_ATTEMPTS else "fallback"
             log.warning("model output rejected",
-                        extra={"attempt": attempt, "error": last_error})
+                        extra={"attempt": attempt, "next": outcome, "error": last_error})
     return Generation(fallback_answer(), MAX_ATTEMPTS, fell_back=True, error=last_error,
                       citations=[])
