@@ -33,7 +33,7 @@ import numpy as np
 
 from ..config import Settings
 from ..schemas import Passage
-from .bm25 import BM25
+from .bm25 import BM25, exact_terms
 from .embedder import Embedder, OllamaEmbedder
 from .versions import wants_older_versions
 
@@ -42,6 +42,7 @@ log = logging.getLogger("rahbar.retrieval")
 SNAPSHOT_TTL = 30.0   # seconds between checks of whether the index changed
 PAGE_SIZE = 500
 EMBED_LRU = 128
+EXACT_TERM_WEIGHT = 3.0   # see retrieve(): the weight of the exact-term ranking in the fusion
 
 
 @dataclass
@@ -182,14 +183,22 @@ class ChromaRetriever:
         dense_ids: list[str] = list(hits["ids"][0])
         similarity = {cid: 1.0 - float(d) for cid, d in zip(dense_ids, hits["distances"][0])}
 
-        rankings: list[list[str]] = [dense_ids]
+        # (ranking, weight). Reciprocal rank fusion alone lets a passage found by only one list
+        # lose to passages found weakly by both, so an exact clause number would sink. A third
+        # list of passages that contain the question's exact terms (1.21, 2.00, 10,000, ...)
+        # counts three times, which puts them in the top k.
+        rankings: list[tuple[list[str], float]] = [(dense_ids, 1.0)]
         if self.settings.hybrid:
-            rankings.append([snap.ids[i] for i, _ in snap.bm25.top(question, pool, allowed)])
+            rankings.append(([snap.ids[i] for i, _ in snap.bm25.top(question, pool, allowed)], 1.0))
+            terms = exact_terms(question)
+            if terms:
+                hits = snap.bm25.top(" ".join(terms), pool, allowed)
+                rankings.append(([snap.ids[i] for i, _ in hits], EXACT_TERM_WEIGHT))
 
         fused: dict[str, float] = {}
-        for ranking in rankings:
+        for ranking, weight in rankings:
             for rank, chunk_id in enumerate(ranking, start=1):
-                fused[chunk_id] = fused.get(chunk_id, 0.0) + 1.0 / (self.settings.rrf_k + rank)
+                fused[chunk_id] = fused.get(chunk_id, 0.0) + weight / (self.settings.rrf_k + rank)
         best = sorted(fused, key=lambda c: fused[c], reverse=True)[:k]
 
         # A passage only the keyword search found has no dense distance yet: read its stored

@@ -36,6 +36,18 @@ def tokenize(text: str) -> list[str]:
     return out
 
 
+def exact_terms(text: str) -> list[str]:
+    """Tokens that behave like codes: a clause number (1.21), a decimal threshold (2.00), an
+    amount (10,000), a course code (cs-4032), a year range (2023-24). A question that contains
+    one is asking for THAT string, which an embedding cannot be trusted to find."""
+    found: list[str] = []
+    for tok in _TOKEN.findall(text.lower()):
+        tok = tok.rstrip(".,")
+        if re.search(r"\d", tok) and re.search(r"[.\-/,]", tok) and tok not in found:
+            found.append(tok)
+    return found
+
+
 class BM25:
     def __init__(self, documents: list[str], k1: float = 1.5, b: float = 0.75) -> None:
         self.k1, self.b = k1, b

@@ -39,6 +39,20 @@ def words(text: str) -> int:
     return len(text.split())
 
 
+_SMALL_WORDS = {"of", "and", "the", "to", "for", "in", "on", "a", "an", "or", "with", "at", "by"}
+
+
+def _looks_like_title(text: str) -> bool:
+    """A real title ("Academic Warning/Probation") has capitalised content words. A wrapped line
+    of a clause ("Students are required to maintain 100% attendance in") does not, and must not
+    become a section name."""
+    content = [w for w in text.split() if w.lower() not in _SMALL_WORDS and any(c.isalpha() for c in w)]
+    if not content:
+        return False
+    capitalised = sum(1 for w in content if w[0].isupper())
+    return capitalised / len(content) >= 0.7
+
+
 def heading_of(line: str) -> str | None:
     """The heading text if `line` is a heading, else None.
 
@@ -56,7 +70,8 @@ def heading_of(line: str) -> str | None:
     if _KEYWORD_TITLE.match(s) and not s.endswith((".", ",", ";")):
         return s
     m = _NUMBERED_TITLE.match(s)
-    if m and not s.endswith((".", ",", ";", ":")) and not re.search(r"\d{3,}$", s):
+    if (m and not s.endswith((".", ",", ";", ":")) and not re.search(r"\d{3,}$", s)
+            and _looks_like_title(m.group(2))):
         return s
     letters = [c for c in s if c.isalpha()]
     if len(letters) >= 4 and words(s) <= 8 and all(c.isupper() for c in letters):

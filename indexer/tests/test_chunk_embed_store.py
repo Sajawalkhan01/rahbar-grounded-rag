@@ -43,6 +43,9 @@ def para(n: int) -> str:
         ("Late registration | 3,000", None),
         ("the body of a paragraph without a number", None),
         ("Total 2,500", None),
+        ("1.21 Students are required to maintain 100% attendance in", None),   # a wrapped clause line
+        ("8.17 An extreme act of dishonesty, e.g.,", None),
+        ("5.4 Academic Warning/Probation", "5.4 Academic Warning/Probation"),
     ],
 )
 def test_heading_detection(line: str, expected: str | None) -> None:

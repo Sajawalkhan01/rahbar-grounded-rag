@@ -107,3 +107,32 @@ def test_index_snapshot_follows_the_index_id() -> None:
     r._checked_at = 0.0                      # the refresh interval has passed
     assert "new-2" in [p.chunk_id for p in r.retrieve("hostels", k=5)]
     assert r.index_id() == "idx-2"
+
+
+def test_exact_terms_finds_codes_but_not_plain_words_or_bare_years() -> None:
+    from app.retrieval.bm25 import exact_terms
+
+    assert exact_terms("clause 1.21 and CS-4032 cost 10,000 or 2.00") == ["1.21", "cs-4032", "10,000", "2.00"]
+    assert exact_terms("what is the attendance rule in 2023") == []
+
+
+def test_an_exact_clause_beats_passages_found_by_both_lists() -> None:
+    """Regression: with plain rank fusion, the passage that holds clause 1.21 was found only by
+    the keyword search and lost to passages the two lists both ranked mid-way."""
+    chroma = FakeChroma()
+    col = chroma.make()
+    for i in range(12):
+        col.add_chunk(f"gen-{i}", f"academic rules clause general attendance policy part {i} of the rules",
+                      meta("rules.pdf", f"{i}. General", i + 1))
+    col.add_chunk("target", "1.21 Students are required to maintain 100% attendance",
+                  meta("rules.pdf", "Attendance Requirements", 10))
+    r = ChromaRetriever(settings(candidate_pool=15), embedder=FakeEmbedder(), client=chroma)
+    ids = [p.chunk_id for p in r.retrieve("What does clause 1.21 of the academic rules require?", k=3)]
+    assert "target" in ids
+
+
+def test_a_bare_year_of_a_superseded_document_asks_for_the_old_version_even_if_a_current_one_shares_it() -> None:
+    old, current = {"2023-08", "2019-20"}, {"2026-06", "2023-24"}
+    assert wants_older_versions("According to the 2023 academic rules, how many credit hours?", old, current)
+    assert not wants_older_versions("faculty publications in the 2023-24 annual report", old, current)
+    assert wants_older_versions("faculty publications in the 2019-20 annual report", old, current)
