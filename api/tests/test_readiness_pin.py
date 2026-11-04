@@ -131,3 +131,22 @@ def test_readyz_returns_503_naming_the_failed_dependency(client: TestClient) -> 
 
 def test_readyz_is_200_in_stub_mode(client: TestClient) -> None:
     assert client.get("/readyz").status_code == 200
+
+
+def test_the_api_starts_when_chroma_is_unreachable_and_reports_not_ready(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression: the Chroma client used to connect in __init__, so the API crashed at startup
+    (CrashLoopBackOff) whenever Chroma was down. It must start, stay alive, and say not ready."""
+    monkeypatch.setenv("RETRIEVER", "chroma")
+    monkeypatch.setenv("LLM_PROVIDER", "stub")
+    monkeypatch.setenv("CHROMA_HOST", "127.0.0.1")
+    monkeypatch.setenv("CHROMA_PORT", "1")           # nothing listens here
+    monkeypatch.setenv("CACHE_ENABLED", "false")
+    from app.main import app
+
+    with TestClient(app) as c:
+        assert c.get("/healthz").status_code == 200
+        ready = c.get("/readyz")
+        assert ready.status_code == 503 and "chroma" in ready.json()["failed"]
+        assert c.post("/api/ask", json={"question": "What is the attendance rule?"}).status_code == 503

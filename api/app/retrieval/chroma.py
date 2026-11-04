@@ -68,16 +68,7 @@ class ChromaRetriever:
         client: Any = None,
     ) -> None:
         self.settings = settings
-        if client is None:
-            import chromadb  # the thin client, from chromadb-client in requirements.txt
-            from chromadb.config import Settings as ChromaSettings
-
-            client = chromadb.HttpClient(
-                host=settings.chroma_host,
-                port=settings.chroma_port,
-                settings=ChromaSettings(anonymized_telemetry=False),
-            )
-        self.client = client
+        self._client = client
         self.embedder: Embedder = embedder or OllamaEmbedder(settings.ollama_url, settings.embed_model)
         self._snapshot: _Snapshot | None = None
         self._checked_at = 0.0
@@ -85,6 +76,26 @@ class ChromaRetriever:
         self._embeddings: OrderedDict[str, list[float]] = OrderedDict()
 
     # ------------------------------------------------------------------ index state
+    @property
+    def client(self) -> Any:
+        """The Chroma client, created on first use rather than at startup.
+
+        chromadb.HttpClient connects as soon as it is built. Building it in __init__ made the
+        API crash and restart whenever Chroma was down or still starting, instead of starting,
+        reporting "not ready" on /readyz and waiting. Now an unreachable Chroma raises here,
+        where readiness and the ask route handle it, and the next call tries again.
+        """
+        if self._client is None:
+            import chromadb  # the thin client, from chromadb-client in requirements.txt
+            from chromadb.config import Settings as ChromaSettings
+
+            self._client = chromadb.HttpClient(
+                host=self.settings.chroma_host,
+                port=self.settings.chroma_port,
+                settings=ChromaSettings(anonymized_telemetry=False),
+            )
+        return self._client
+
     def collection(self) -> Any:
         return self.client.get_collection(self.settings.collection)
 

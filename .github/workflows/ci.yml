@@ -99,7 +99,7 @@ jobs:
           path: /tmp
       - run: docker load -i /tmp/${{ matrix.name }}.tar
       # Fail on HIGH or CRITICAL findings that have a fix available.
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@v0.33.1
         with:
           image-ref: rahbar-${{ matrix.name }}:ci
           severity: HIGH,CRITICAL
@@ -169,4 +169,7 @@ jobs:
         run: |
           kubectl get pods -n rahbar -o wide || true
           kubectl logs -l app=api -n rahbar --tail=60 || true
+          kubectl logs chroma-0 -n rahbar --tail=60 || true
+          kubectl logs chroma-0 -n rahbar --previous --tail=60 || true
+          kubectl logs -l app=indexer -n rahbar --all-containers --tail=60 || true
           kubectl describe pods -n rahbar | tail -80 || true
