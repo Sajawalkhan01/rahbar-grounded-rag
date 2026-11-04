@@ -99,13 +99,11 @@ jobs:
           name: image-${{ matrix.name }}
           path: /tmp
       - run: docker load -i /tmp/${{ matrix.name }}.tar
-      # Fail on HIGH or CRITICAL findings that have a fix available.
-      - uses: aquasecurity/trivy-action@v0.33.1
-        with:
-          image-ref: rahbar-${{ matrix.name }}:ci
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+      # Fail on HIGH or CRITICAL findings that have a fix available. Trivy runs from its
+      # published image (pinned), which avoids the setup action's own download step.
+      - name: Scan rahbar-${{ matrix.name }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.65.0 image             --db-repository public.ecr.aws/aquasecurity/trivy-db:2             --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 rahbar-${{ matrix.name }}:ci
 
   e2e-eval:
     needs: [test, manifests, build]
@@ -168,7 +166,9 @@ jobs:
       - name: Show the cluster on failure
         if: failure()
         run: |
-          kubectl get pods -n rahbar -o wide || true
+          kubectl get pods,job -n rahbar -o wide || true
+          kubectl describe job indexer -n rahbar | tail -40 || true
+          kubectl get events -n rahbar --sort-by=.lastTimestamp | tail -40 || true
           kubectl logs -l app=api -n rahbar --tail=60 || true
           kubectl logs chroma-0 -n rahbar --tail=60 || true
           kubectl logs chroma-0 -n rahbar --previous --tail=60 || true
