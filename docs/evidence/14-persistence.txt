@@ -1,0 +1,18 @@
+# Persistence: delete the Chroma and Redis pods; the data must survive (PVCs)
+Wed Nov  4 16:48:54 UTC 2026
+NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-chroma-0   Bound    pvc-2a3f36ac-bc7e-44ae-9cca-abd978549b96   2Gi        RWO            standard       <unset>                 4h52m
+redis-data      Bound    pvc-3a983e5f-c75b-4e7c-afa8-87dffb67f2dc   1Gi        RWO            standard       <unset>                 4h52m
+--- before
+{"status":"ready","checks":{"chroma":"ok","collection":"ok (572 chunks)","pin":"ok","redis":"ok"},"failed":{}}
+redis SET persist-demo
+$ kubectl delete pod chroma-0 and the redis pod
+pod "chroma-0" deleted from rahbar namespace
+pod "redis-855b774bc4-sjwmt" deleted from rahbar namespace
+chroma-0                 0/1     Running     0          3s
+redis-855b774bc4-9v8wr   0/1     Running     0          5s
+pod/chroma-0 condition met
+pod/redis-855b774bc4-9v8wr condition met
+--- after
+{"status":"ready","checks":{"chroma":"ok","collection":"ok (572 chunks)","pin":"ok","redis":"ok"},"failed":{}}
+redis GET persist-demo -> b'still-here'

@@ -1,0 +1,13 @@
+Wed Nov  4 16:28:02 UTC 2026
+NAME                     CPU(cores)   MEMORY(bytes)   
+api-54bc84b6fb-7vf4h     165m         149Mi           
+api-54bc84b6fb-8tl25     5m           72Mi            
+api-54bc84b6fb-92xnx     6m           72Mi            
+api-54bc84b6fb-9ttzl     5m           71Mi            
+api-54bc84b6fb-k7tll     6m           75Mi            
+api-54bc84b6fb-pc5kq     6m           70Mi            
+api-54bc84b6fb-wc9r5     5m           65Mi            
+chroma-0                 25m          73Mi            
+redis-855b774bc4-sjwmt   23m          6Mi             
+ui-568ffc4f94-5vdpp      1m           1Mi             
+ui-568ffc4f94-dc56k      1m           1Mi             

@@ -19,7 +19,7 @@ import time
 from typing import Any
 
 from .config import Settings
-from .retrieval.pin import compare_pin
+from .retrieval.pin import PinStatus, compare_pin
 
 log = logging.getLogger("rahbar.ready")
 LOG_EVERY = 60.0     # repeat the same failure in the log at most this often
@@ -71,8 +71,15 @@ class Readiness:
             if self._api_dimension is None:
                 self._api_dimension = len(self.retriever.embedder.embed_query("dimension probe"))
         except Exception as exc:
+            # A wrong model name is a certain conflict; report it even when that model cannot be
+            # reached, instead of the vaguer "cannot verify".
+            index_model, index_dim = meta.get("embed_model"), meta.get("dimension")
+            if index_model is not None and index_dim is not None and index_model != self.settings.embed_model:
+                return self._report(compare_pin(meta, self.settings.embed_model, int(index_dim)))
             return f"cannot verify: the embedding service failed: {exc!r}"
-        status = compare_pin(meta, self.settings.embed_model, self._api_dimension)
+        return self._report(compare_pin(meta, self.settings.embed_model, self._api_dimension))
+
+    def _report(self, status: PinStatus) -> str:
         if status.ok:
             return "ok"
         key = status.reason

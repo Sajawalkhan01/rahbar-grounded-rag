@@ -5,6 +5,8 @@ kind: Kustomization
 resources:
   - ../../base
   - egress-llm-host.yaml
+patches:
+  - path: configmap-patch.yaml
 images:
   - {name: rahbar-api, newTag: dev}
   - {name: rahbar-indexer, newTag: dev}

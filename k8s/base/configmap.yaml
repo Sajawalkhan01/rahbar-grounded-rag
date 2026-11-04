@@ -13,6 +13,7 @@ data:
   RETRIEVER: "chroma"
   LLM_PROVIDER: "ollama-host"          # stub | ollama-host | ollama-incluster | hosted
   LLM_MODEL: "llama3.2:3b"
+  LLM_TIMEOUT_SECONDS: "240"
   OLLAMA_URL: "http://host.minikube.internal:11434"   # also used by the indexer for embeddings
   HOSTED_BASE_URL: ""
   # Facts and JSON belong at 0 to 0.3: a low value keeps the answer close to the evidence.

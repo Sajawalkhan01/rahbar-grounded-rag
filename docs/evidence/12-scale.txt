@@ -1,0 +1,17 @@
+# Scale the api Deployment and watch the Service endpoints
+Wed Nov  4 16:46:20 UTC 2026
+$ kubectl scale deploy/api --replicas=5
+deployment.apps/api scaled
+deployment "api" successfully rolled out
+NAME   ENDPOINTS                                                              AGE
+api    10.244.120.73:8000,10.244.120.75:8000,10.244.120.77:8000 + 1 more...   4h50m
+NAME   REFERENCE        TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+api    Deployment/api   cpu: 6%/70%   3         8         5          4h50m
+$ scale back to 3
+deployment.apps/api scaled
+NAME                  READY   STATUS        RESTARTS   AGE
+api-dc8b7964b-j4cd9   1/1     Terminating   0          31s
+api-dc8b7964b-l7kdk   1/1     Running       0          3m59s
+api-dc8b7964b-m4n5c   1/1     Running       0          4m48s
+api-dc8b7964b-ntlrf   1/1     Running       0          4m47s
+api-dc8b7964b-r4fhh   0/1     Running       0          4s

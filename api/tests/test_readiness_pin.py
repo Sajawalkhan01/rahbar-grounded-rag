@@ -75,6 +75,15 @@ def test_embedding_model_mismatch_refuses_readiness_and_logs_both_names(
     assert record.api_embed_model == "another-model" and record.index_embed_model == "fake-embed"  # type: ignore[attr-defined]
 
 
+def test_a_wrong_model_name_is_named_even_when_that_model_cannot_be_reached() -> None:
+    class Unreachable(FakeEmbedder):
+        def embed_query(self, text: str) -> list[float]:
+            raise ConnectionError("model not installed")
+
+    ready, checks = _ready(_healthy_chroma(), embedder=Unreachable(), embed_model="another-model")
+    assert not ready and "another-model" in checks["pin"] and "fake-embed" in checks["pin"]
+
+
 def test_vector_dimension_mismatch_refuses_readiness() -> None:
     ready, checks = _ready(_healthy_chroma(), embedder=FakeEmbedder(dim=DIM * 2))
     assert not ready and "dimension mismatch" in checks["pin"]

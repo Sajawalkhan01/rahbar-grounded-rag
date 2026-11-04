@@ -1,0 +1,66 @@
+# Metrics and structured logs
+Wed Nov  4 16:49:31 UTC 2026
+# HELP rahbar_requests_total HTTP requests
+rahbar_requests_total{path="/healthz",status="200"} 5.0
+rahbar_requests_total{path="/readyz",status="200"} 12.0
+# HELP rahbar_requests_created HTTP requests
+rahbar_requests_created{path="/healthz",status="200"} 1.793810885968566e+09
+rahbar_requests_created{path="/readyz",status="200"} 1.7938108894674702e+09
+# HELP rahbar_request_seconds HTTP request latency
+rahbar_request_seconds_bucket{le="0.05",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="0.1",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="0.25",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="0.5",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="1.0",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="2.0",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="5.0",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="10.0",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="30.0",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="60.0",path="/healthz"} 5.0
+rahbar_request_seconds_bucket{le="+Inf",path="/healthz"} 5.0
+rahbar_request_seconds_count{path="/healthz"} 5.0
+rahbar_request_seconds_sum{path="/healthz"} 0.015683900004660245
+rahbar_request_seconds_bucket{le="0.05",path="/readyz"} 8.0
+rahbar_request_seconds_bucket{le="0.1",path="/readyz"} 9.0
+rahbar_request_seconds_bucket{le="0.25",path="/readyz"} 9.0
+rahbar_request_seconds_bucket{le="0.5",path="/readyz"} 9.0
+rahbar_request_seconds_bucket{le="1.0",path="/readyz"} 9.0
+rahbar_request_seconds_bucket{le="2.0",path="/readyz"} 9.0
+rahbar_request_seconds_bucket{le="5.0",path="/readyz"} 12.0
+rahbar_request_seconds_bucket{le="10.0",path="/readyz"} 12.0
+rahbar_request_seconds_bucket{le="30.0",path="/readyz"} 12.0
+rahbar_request_seconds_bucket{le="60.0",path="/readyz"} 12.0
+rahbar_request_seconds_bucket{le="+Inf",path="/readyz"} 12.0
+rahbar_request_seconds_count{path="/readyz"} 12.0
+rahbar_request_seconds_sum{path="/readyz"} 8.329147799995553
+# HELP rahbar_request_seconds_created HTTP request latency
+rahbar_request_seconds_created{path="/healthz"} 1.7938108859685996e+09
+rahbar_request_seconds_created{path="/readyz"} 1.7938108894675195e+09
+# HELP rahbar_retrieval_seconds Embedding the question and searching the index
+rahbar_retrieval_seconds_bucket{le="0.01"} 0.0
+rahbar_retrieval_seconds_bucket{le="0.025"} 0.0
+rahbar_retrieval_seconds_bucket{le="0.05"} 0.0
+rahbar_retrieval_seconds_bucket{le="0.1"} 0.0
+rahbar_retrieval_seconds_bucket{le="0.25"} 0.0
+rahbar_retrieval_seconds_bucket{le="0.5"} 0.0
+rahbar_retrieval_seconds_bucket{le="1.0"} 0.0
+rahbar_retrieval_seconds_bucket{le="2.0"} 0.0
+rahbar_retrieval_seconds_bucket{le="5.0"} 0.0
+rahbar_retrieval_seconds_bucket{le="+Inf"} 0.0
+rahbar_retrieval_seconds_count 0.0
+rahbar_retrieval_seconds_sum 0.0
+# HELP rahbar_retrieval_seconds_created Embedding the question and searching the index
+rahbar_retrieval_seconds_created 1.7938108832892382e+09
+# HELP rahbar_generation_seconds Time spent in the LLM provider
+# HELP rahbar_cache_requests_total Semantic cache lookups
+# HELP rahbar_cache_hit_ratio Cache hits / (hits + misses) in this process since it started
+rahbar_cache_hit_ratio 0.0
+# HELP rahbar_abstentions_total Questions the system declined
+# HELP rahbar_fallbacks_total Model output failed validation twice
+rahbar_fallbacks_total 0.0
+# HELP rahbar_fallbacks_created Model output failed validation twice
+rahbar_fallbacks_created 1.7938108832893655e+09
+# HELP rahbar_llm_tokens_total LLM tokens
+# HELP rahbar_citations_removed_t
+
+--- one JSON log line per request
