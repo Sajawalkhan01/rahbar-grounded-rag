@@ -38,12 +38,18 @@ spec:
             - {name: CORPUS_RAW_DIR, value: /corpus}
             - {name: CORPUS_MANIFEST, value: /corpus/MANIFEST.md}
           resources:
-            requests: {cpu: 50m, memory: 128Mi}
-            limits: {cpu: 500m, memory: 256Mi}
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: {drop: [ALL]}
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - {name: corpus, mountPath: /corpus}
             - {name: tmp, mountPath: /tmp}
@@ -57,12 +63,18 @@ spec:
           # Embedding a corpus (and OCR of scanned pages) holds far more memory than answering
           # a question: too low a limit gives OOMKilled, exit code 137.
           resources:
-            requests: {cpu: 500m, memory: 1Gi}
-            limits: {cpu: "2", memory: 3Gi}
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 3Gi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: {drop: [ALL]}
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - {name: corpus, mountPath: /corpus, readOnly: true}
             - {name: tmp, mountPath: /tmp}     # pdf2image and tesseract write temp files here

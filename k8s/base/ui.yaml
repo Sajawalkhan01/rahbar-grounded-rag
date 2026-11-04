@@ -46,12 +46,18 @@ spec:
             preStop:
               exec: {command: ["sleep", "5"]}
           resources:
-            requests: {cpu: 20m, memory: 32Mi}
-            limits: {cpu: 100m, memory: 64Mi}
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: {drop: [ALL]}
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - {name: tmp, mountPath: /tmp}   # nginx writes its pid and temp files here only
       volumes:
