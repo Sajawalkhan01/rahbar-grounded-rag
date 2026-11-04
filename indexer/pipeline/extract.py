@@ -41,6 +41,7 @@ MIN_GUTTER = 7           # points of empty space that separate two text columns
 MIN_COLUMN_SHARE = 0.12  # a column must hold at least this share of the page's words
 LINE_TOLERANCE = 3.0     # words whose top edges differ by less than this are on one line
 MAX_HEADING_WORDS = 14
+MERGED_CELL_SHARE = 0.4  # a table with more empty cells than this has merged cells, not data
 
 
 def ocr_enabled() -> bool:
@@ -54,9 +55,16 @@ def _useful_chars(text: str) -> int:
 
 def render_table(rows: list[list[str | None]]) -> str:
     """Rows of cells to 'a | b | c' lines. Newlines inside a cell become spaces."""
+    cleaned = [[" ".join((c or "").split()) for c in row] for row in rows]
+    total = sum(len(r) for r in cleaned)
+    empty = sum(1 for r in cleaned for c in r if not c)
+    # PDF tables with merged cells come back as "| Lahore |  |  | 16 |  |  | 11 |...". When most
+    # cells are empty they are merge artefacts, not data, so each row keeps only its filled cells.
+    squeeze = total > 0 and empty / total > MERGED_CELL_SHARE
     lines = []
-    for row in rows:
-        cells = [" ".join((c or "").split()) for c in row]
+    for cells in cleaned:
+        if squeeze:
+            cells = [c for c in cells if c]
         if any(cells):
             lines.append(" | ".join(cells))
     return "\n".join(lines)
@@ -200,6 +208,8 @@ def _heading_prefix(line: list[dict], body_size: float) -> str:
     if len(line) > MAX_HEADING_WORDS or not any(c.isalpha() for c in text):
         return ""
     if text.endswith((",", ";")) or (text.endswith(".") and not re.match(r"^\d+(\.\d+)*\.? ", text)):
+        return ""
+    if re.search(r"\s\d[\d,.%]*$", text):      # "G. Total 428": a labelled value, not a heading
         return ""
     sizes = sorted(w["size"] for w in line)
     size = sizes[len(sizes) // 2]

@@ -94,7 +94,18 @@ def test_html_keeps_headings_and_table_rows_and_drops_navigation(tmp_path: Path)
 
 
 def test_render_table_collapses_cell_newlines_and_skips_empty_rows() -> None:
-    assert render_table([["a\nb", None], [None, None], ["c", "d"]]) == "a b | \nc | d"
+    rows = [["a\nb", "x"], [None, None], ["c", "d"]]
+    assert render_table(rows) == "a b | x\nc | d"
+
+
+def test_render_table_keeps_real_empty_cells_so_columns_stay_aligned() -> None:
+    rows = [["Charge", "Amount", "Note"], ["Late", "3,000", ""], ["Transcript", "1,500", "per copy"]]
+    assert render_table(rows) == "Charge | Amount | Note\nLate | 3,000 | \nTranscript | 1,500 | per copy"
+
+
+def test_render_table_squeezes_the_empty_cells_that_merged_cells_leave_behind() -> None:
+    rows = [["Campus", "", "", "Prof.", "", "", "Total"], ["", "Lahore", "", "", "16", "", "188"]]
+    assert render_table(rows) == "Campus | Prof. | Total\nLahore | 16 | 188"
 
 
 def test_unsupported_file_type_is_an_error(tmp_path: Path) -> None:
