@@ -48,7 +48,7 @@ class Settings:
     log_level: str = "INFO"
 
     # Retrieval (sections 3.2 and 3.4)
-    relevance_floor: float = 0.55    # below this best similarity, the corpus does not cover it
+    relevance_floor: float = 0.70    # below this best similarity, the corpus does not cover it
     candidate_pool: int = 20         # how many hits each of dense and BM25 contribute before fusion
     rrf_k: int = 60                  # reciprocal rank fusion constant
     hybrid: bool = True              # HYBRID: false gives dense-only retrieval (for experiments)
@@ -56,7 +56,7 @@ class Settings:
 
     # Semantic cache (section 3.3)
     cache_enabled: bool = True
-    cache_threshold: float = 0.92    # cosine similarity at or above this is a hit
+    cache_threshold: float = 0.94    # cosine similarity at or above this is a hit
     cache_ttl_seconds: int = 86400
     redis_host: str = "redis"
     redis_port: int = 6379
@@ -81,13 +81,13 @@ def get_settings() -> Settings:
         hosted_base_url=os.environ.get("HOSTED_BASE_URL", ""),
         llm_api_key=os.environ.get("LLM_API_KEY", ""),
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
-        relevance_floor=_float("RELEVANCE_FLOOR", 0.55),
+        relevance_floor=_float("RELEVANCE_FLOOR", 0.70),
         candidate_pool=_int("CANDIDATE_POOL", 20),
         rrf_k=_int("RRF_K", 60),
         hybrid=_bool("HYBRID", True),
         filter_superseded=_bool("SUPERSEDED_FILTER", True),
         cache_enabled=_bool("CACHE_ENABLED", True),
-        cache_threshold=_float("CACHE_THRESHOLD", 0.92),
+        cache_threshold=_float("CACHE_THRESHOLD", 0.94),
         cache_ttl_seconds=_int("CACHE_TTL_SECONDS", 86400),
         redis_host=os.environ.get("REDIS_HOST", "redis"),
         redis_port=_int("REDIS_PORT", 6379),

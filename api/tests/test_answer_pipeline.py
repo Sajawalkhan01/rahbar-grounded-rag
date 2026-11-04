@@ -233,3 +233,18 @@ def test_turns_are_stored_per_session(redis_client: fakeredis.FakeRedis) -> None
     assert turns.last_question("abc12345") == "second?"
     assert turns.last_question("other-session") is None
     assert turns.last_question(None) is None
+
+
+def test_a_question_naming_an_exact_term_is_relevant_to_a_passage_that_contains_it() -> None:
+    """Embeddings blur clause numbers, so a low score must not make clause 1.21 unanswerable."""
+    low = passage(1, score=0.3, text="1.21 Students are required to maintain 100% attendance.")
+    provider = ScriptedProvider(good_answer(low))
+    r = answer_question("What does clause 1.21 require?", FakeRetriever([low]), provider, settings())
+    assert r.answered_from_context and provider.calls == 1
+
+
+def test_a_low_score_without_an_exact_term_still_abstains() -> None:
+    low = passage(1, score=0.3, text="1.21 Students are required to maintain 100% attendance.")
+    provider = ScriptedProvider(good_answer(low))
+    r = answer_question("What is the hostel curfew?", FakeRetriever([low]), provider, settings())
+    assert not r.answered_from_context and provider.calls == 0

@@ -23,6 +23,7 @@ from ..logjson import request_id_var
 from ..providers.llm.base import LLMProvider
 from ..providers.llm.usage import take_usage
 from ..retrieval.base import Retriever
+from ..retrieval.bm25 import exact_terms, tokenize
 from ..routes import metrics
 from ..schemas import Answer, AskResponse, Citation, Passage, RetrievedRef
 from .cache import SemanticCache
@@ -37,6 +38,24 @@ ABSTAIN_TEXT = (
     "Try rephrasing it, or ask about the academic rules, fees, grading, the student "
     "handbook or the annual reports."
 )
+
+
+def _is_relevant(question: str, passages: list[Passage], floor: float) -> bool:
+    """Is anything retrieved relevant enough to answer from?
+
+    Normally: the best passage's cosine similarity reaches the relevance floor. Exception: a
+    question that names an exact term ("clause 1.21", "2.00", "10,000") is relevant to any passage
+    that contains that term, however low its embedding score, because embeddings blur exactly
+    these strings (the measured scores of such questions were 0.64 to 0.68 against a floor of
+    0.70; see docs/PIPELINE.md).
+    """
+    terms = exact_terms(question)
+    for p in passages:
+        if p.score >= floor:
+            return True
+        if terms and any(t in set(tokenize(p.text)) for t in terms):
+            return True
+    return False
 
 
 def _refs(passages: list[Passage]) -> list[RetrievedRef]:
@@ -103,7 +122,7 @@ def answer_question(
     metrics.TOP_SCORE.observe(max(top_score, 0.0))
 
     # --- honest abstention: nothing relevant retrieved -----------------------------------
-    if not passages or top_score < settings.relevance_floor:
+    if not _is_relevant(question, passages, settings.relevance_floor):
         metrics.ABSTENTIONS.labels(reason="floor").inc()
         response = AskResponse(
             request_id=request_id, answer=ABSTAIN_TEXT, citations=[],
