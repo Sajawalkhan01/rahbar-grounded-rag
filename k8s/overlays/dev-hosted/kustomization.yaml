@@ -1,0 +1,9 @@
+# minikube with a hosted LLM (Groq free tier). Embeddings still come from Ollama on the laptop.
+# The key is a Secret made on the command line (make secret); it is not in any file here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../dev
+  - egress-hosted-llm.yaml
+patches:
+  - path: configmap-patch.yaml
