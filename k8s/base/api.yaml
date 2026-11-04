@@ -18,6 +18,9 @@ spec:
       labels: {app: api, app.kubernetes.io/part-of: rahbar}
     spec:
       serviceAccountName: api
+      # Kubernetes would inject CHROMA_PORT=tcp://... for the Service named chroma; Chroma reads
+      # every CHROMA_* variable as its own config and panics. No pod here uses service links.
+      enableServiceLinks: false
       automountServiceAccountToken: false
       # The preStop sleep lets the Service stop sending traffic before the process gets
       # SIGTERM; the grace period must be longer than the sleep plus the slowest request.

@@ -29,6 +29,9 @@ spec:
       labels: {app: redis, app.kubernetes.io/part-of: rahbar}
     spec:
       serviceAccountName: redis
+      # Kubernetes would inject CHROMA_PORT=tcp://... for the Service named chroma; Chroma reads
+      # every CHROMA_* variable as its own config and panics. No pod here uses service links.
+      enableServiceLinks: false
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
       securityContext:
