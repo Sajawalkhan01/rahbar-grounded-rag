@@ -15,4 +15,4 @@ patches:
     patch: |-
       - {op: replace, path: /data/LLM_PROVIDER, value: hosted}
       - {op: replace, path: /data/HOSTED_BASE_URL, value: "https://api.groq.com/openai/v1"}
-      - {op: replace, path: /data/LLM_MODEL, value: "llama-3.1-8b-instant"}
+      - {op: replace, path: /data/LLM_MODEL, value: "openai/gpt-oss-20b"}
