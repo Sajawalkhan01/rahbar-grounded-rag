@@ -1,0 +1,65 @@
+Wed Nov  4 16:27:56 UTC 2026
+NAME                         READY   STATUS        RESTARTS   AGE
+pod/api-54bc84b6fb-7vf4h     1/1     Terminating   0          6m22s
+pod/api-54bc84b6fb-8tl25     1/1     Running       0          5m44s
+pod/api-54bc84b6fb-92xnx     1/1     Terminating   0          5m9s
+pod/api-54bc84b6fb-9ttzl     1/1     Running       0          7m4s
+pod/api-54bc84b6fb-k7tll     1/1     Terminating   0          6m2s
+pod/api-54bc84b6fb-pc5kq     1/1     Terminating   0          5m27s
+pod/api-54bc84b6fb-wc9r5     1/1     Running       0          6m51s
+pod/chroma-0                 1/1     Running       0          4h31m
+pod/indexer-pnwd7            0/1     Completed     0          4h31m
+pod/redis-855b774bc4-sjwmt   1/1     Running       0          4h31m
+pod/ui-568ffc4f94-5vdpp      1/1     Running       0          4h31m
+pod/ui-568ffc4f94-dc56k      1/1     Running       0          4h31m
+
+NAME             TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/api      ClusterIP   10.101.210.193   <none>        8000/TCP   4h31m
+service/chroma   ClusterIP   10.102.139.149   <none>        8000/TCP   4h31m
+service/redis    ClusterIP   10.106.14.47     <none>        6379/TCP   4h31m
+service/ui       ClusterIP   10.109.138.99    <none>        8080/TCP   4h31m
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/api     7/3     7            7           4h31m
+deployment.apps/redis   1/1     1            1           4h31m
+deployment.apps/ui      2/2     2            2           4h31m
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/api-54bc84b6fb     3         3         3       7m8s
+replicaset.apps/api-5646cc68bf     0         0         0       27m
+replicaset.apps/api-57558994cd     0         0         0       30m
+replicaset.apps/api-b99894986      0         0         0       4h31m
+replicaset.apps/api-bcb766b49      0         0         0       11m
+replicaset.apps/redis-855b774bc4   1         1         1       4h31m
+replicaset.apps/ui-568ffc4f94      2         2         2       4h31m
+
+NAME                      READY   AGE
+statefulset.apps/chroma   1/1     4h31m
+
+NAME                                      REFERENCE        TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/api   Deployment/api   cpu: 28%/70%   3         8         7          4h31m
+
+NAME                    SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+cronjob.batch/reindex   0 3 * * 0   <none>     False     0        <none>          4h31m
+
+NAME                STATUS     COMPLETIONS   DURATION   AGE
+job.batch/indexer   Complete   1/1           72m        4h31m
+
+NAME                                  STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/data-chroma-0   Bound    pvc-2a3f36ac-bc7e-44ae-9cca-abd978549b96   2Gi        RWO            standard       <unset>                 4h31m
+persistentvolumeclaim/redis-data      Bound    pvc-3a983e5f-c75b-4e7c-afa8-87dffb67f2dc   1Gi        RWO            standard       <unset>                 4h31m
+
+NAME                               CLASS   HOSTS          ADDRESS        PORTS   AGE
+ingress.networking.k8s.io/rahbar   nginx   rahbar.local   192.168.49.2   80      4h31m
+
+NAME                                                          POD-SELECTOR           AGE
+networkpolicy.networking.k8s.io/allow-dns                     <none>                 4h31m
+networkpolicy.networking.k8s.io/api-egress-chroma-redis       app=api                4h31m
+networkpolicy.networking.k8s.io/api-from-ingress-and-ui       app=api                4h31m
+networkpolicy.networking.k8s.io/chroma-from-api-and-indexer   app=chroma             4h31m
+networkpolicy.networking.k8s.io/default-deny-all              <none>                 4h31m
+networkpolicy.networking.k8s.io/egress-ollama-host            app in (api,indexer)   4h31m
+networkpolicy.networking.k8s.io/indexer-egress-chroma         app=indexer            4h31m
+networkpolicy.networking.k8s.io/indexer-egress-internet       app=indexer            4h31m
+networkpolicy.networking.k8s.io/redis-from-api                app=redis              4h31m
+networkpolicy.networking.k8s.io/ui-from-ingress               app=ui                 4h31m

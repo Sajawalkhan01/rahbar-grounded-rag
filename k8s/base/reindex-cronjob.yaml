@@ -1,0 +1,89 @@
+# Weekly re-index with the SAME image and arguments as the Job. concurrencyPolicy: Forbid
+# keeps two indexers from ever writing the Chroma volume at once.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reindex
+  namespace: rahbar
+  labels: {app: indexer, app.kubernetes.io/part-of: rahbar}
+spec:
+  schedule: "0 3 * * 0"            # Sundays at 03:00
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 5400
+      template:
+        metadata:
+          labels: {app: indexer, app.kubernetes.io/part-of: rahbar}
+        spec:
+          serviceAccountName: indexer
+          # Kubernetes would inject CHROMA_PORT=tcp://... for the Service named chroma; Chroma reads
+          # every CHROMA_* variable as its own config and panics. No pod here uses service links.
+          enableServiceLinks: false
+          automountServiceAccountToken: false
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile: {type: RuntimeDefault}
+          # The corpus is downloaded fresh by an init container into a scratch volume, using the
+          # same image (corpus/fetch.py + corpus/sources.yaml). Nothing copyrighted is stored in
+          # the image or in Git; the MANIFEST SHA-256s let you verify what was fetched.
+          initContainers:
+            - name: fetch-corpus
+              image: rahbar-indexer:dev
+              imagePullPolicy: IfNotPresent
+              command: ["python", "/app/corpus/fetch.py"]
+              env:
+                - {name: CORPUS_RAW_DIR, value: /corpus}
+                - {name: CORPUS_MANIFEST, value: /corpus/MANIFEST.md}
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - {name: corpus, mountPath: /corpus}
+                - {name: tmp, mountPath: /tmp}
+          containers:
+            - name: indexer
+              image: rahbar-indexer:dev
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "pipeline.run"]
+              envFrom:
+                - configMapRef: {name: rahbar-config}
+              # Embedding a corpus (and OCR of scanned pages) holds far more memory than answering
+              # a question: too low a limit gives OOMKilled, exit code 137.
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 3Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - {name: corpus, mountPath: /corpus, readOnly: true}
+                - {name: tmp, mountPath: /tmp}     # pdf2image and tesseract write temp files here
+          volumes:
+            - name: corpus
+              emptyDir: {sizeLimit: 1Gi}
+            - name: tmp
+              emptyDir: {sizeLimit: 1Gi}

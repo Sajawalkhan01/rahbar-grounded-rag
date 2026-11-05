@@ -1,0 +1,19 @@
+# Delete an api pod while a client calls POST /api/ask through the Ingress (an off-topic question: retrieval runs, no LLM wait)
+Wed Nov  4 16:47:48 UTC 2026
+$ kubectl delete pod/api-dc8b7964b-l7kdk
+pod "api-dc8b7964b-l7kdk" deleted from rahbar namespace
+NAME                  READY   STATUS        RESTARTS   AGE
+api-dc8b7964b-bdswd   0/1     Running       0          3s
+api-dc8b7964b-l7kdk   1/1     Terminating   0          5m8s
+api-dc8b7964b-m4n5c   1/1     Running       0          5m57s
+api-dc8b7964b-ntlrf   1/1     Running       0          5m56s
+api-dc8b7964b-r4fhh   1/1     Running       0          73s
+HTTP status of the 40 requests sent while the pod was deleted:
+200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 
+non-200 count: 0
+deployment "api" successfully rolled out
+NAME                  READY   STATUS    RESTARTS   AGE
+api-dc8b7964b-bdswd   1/1     Running   0          20s
+api-dc8b7964b-m4n5c   1/1     Running   0          6m14s
+api-dc8b7964b-ntlrf   1/1     Running   0          6m13s
+api-dc8b7964b-r4fhh   1/1     Running   0          90s

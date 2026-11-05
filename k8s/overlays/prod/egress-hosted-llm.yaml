@@ -1,0 +1,14 @@
+# The hosted LLM (an HTTPS API) is reached from the api only; the indexer keeps embedding
+# through OLLAMA_URL, so it needs the host rule too if that stays on the laptop.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: egress-hosted-llm, namespace: rahbar}
+spec:
+  podSelector: {matchLabels: {app: api}}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+      ports: [{protocol: TCP, port: 443}]

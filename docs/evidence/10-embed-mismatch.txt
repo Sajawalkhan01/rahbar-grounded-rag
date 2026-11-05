@@ -1,0 +1,20 @@
+# Embedding-model guardrail: the ConfigMap says a different model than the index was built with
+Wed Nov  4 16:40:42 UTC 2026
+$ kubectl patch cm rahbar-config  EMBED_MODEL=mxbai-embed-large
+configmap/rahbar-config patched
+$ kubectl get pods -l app=api
+NAME                  READY   STATUS    RESTARTS   AGE
+api-dc8b7964b-2v9q6   0/1     Running   0          75s
+api-dc8b7964b-wlngd   0/1     Running   0          76s
+api-dc8b7964b-xbrgw   0/1     Running   0          76s
+$ kubectl logs (pin conflict)
+{"ts": "2026-11-04T16:41:10Z", "level": "ERROR", "logger": "rahbar.ready", "msg": "embedding pin mismatch: refusing to become ready", "request_id": "41b1460ead7945d088d91add47a899ac", "reason": "embedding model mismatch: API uses 'mxbai-embed-large', index was built with 'nomic-embed-text'", "api_embed_model": "mxbai-embed-large", "index_embed_model": "nomic-embed-text", "api_dimension": 768, "index_dimension": 768}
+$ curl /readyz
+503 {"status":"not ready","checks":{"chroma":"ok","collection":"ok (572 chunks)","pin":"embedding model mismatch: API uses 'mxbai-embed-large', index was built with 'nomic-embed-text'","redis":"ok"},"failed":{"pin":"embedding model mismatch: API uses 'mxbai-embed-large', index was built with 'nomic-embed-text'"}}
+$ revert
+configmap/rahbar-config patched
+deployment "api" successfully rolled out
+NAME                  READY   STATUS    RESTARTS   AGE
+api-dc8b7964b-frmwk   1/1     Running   0          23s
+api-dc8b7964b-m4n5c   1/1     Running   0          23s
+api-dc8b7964b-ntlrf   1/1     Running   0          22s

@@ -1,0 +1,181 @@
+{
+  "A": {
+    "stage": "A extraction",
+    "documents_without_text": [
+      {
+        "source": "undergraduate-academic-rules-aug-2023.pdf",
+        "pages": 26,
+        "empty_pages": 24,
+        "problems_logged": 24,
+        "chunks_from_empty_pages": 0
+      },
+      {
+        "source": "academic-rules-handbook-jun-2026.pdf",
+        "pages": 58,
+        "empty_pages": 4,
+        "problems_logged": 5,
+        "chunks_from_empty_pages": 0
+      },
+      {
+        "source": "student-handbook-jun-2026.pdf",
+        "pages": 64,
+        "empty_pages": 4,
+        "problems_logged": 4,
+        "chunks_from_empty_pages": 0
+      },
+      {
+        "source": "annual-report-2019-20.pdf",
+        "pages": 33,
+        "empty_pages": 0,
+        "problems_logged": 1,
+        "chunks_from_empty_pages": 0
+      },
+      {
+        "source": "annual-report-2023-24.pdf",
+        "pages": 85,
+        "empty_pages": 0,
+        "problems_logged": 2,
+        "chunks_from_empty_pages": 0
+      },
+      {
+        "source": "faculty-entrepreneurship-and-technical-start-ups-policy.pdf",
+        "pages": 8,
+        "empty_pages": 8,
+        "problems_logged": 8,
+        "chunks_from_empty_pages": 0
+      }
+    ],
+    "chunks_before": 601,
+    "chunks_after": 554,
+    "working": {
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 1.0,
+        "version": 1.0
+      },
+      "misses": []
+    },
+    "broken": {
+      "recall_at_3": 0.8333,
+      "recall_at_5": 0.8333,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 0.9,
+        "version": 0.3333
+      },
+      "misses": [
+        "q09",
+        "v02",
+        "v03"
+      ]
+    }
+  },
+  "C": {
+    "stage": "C retrieval",
+    "working": {
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 1.0,
+        "version": 1.0
+      },
+      "misses": []
+    },
+    "broken": {
+      "recall_at_3": 0.8611,
+      "recall_at_5": 0.8611,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 0.85,
+        "version": 0.6667
+      },
+      "misses": [
+        "q04",
+        "q07",
+        "v01"
+      ]
+    }
+  },
+  "E": {
+    "stage": "E source",
+    "working": {
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 1.0,
+        "version": 1.0
+      },
+      "misses": [],
+      "questions_with_a_superseded_passage_in_top3": 2,
+      "which": [
+        "v02",
+        "v03"
+      ]
+    },
+    "broken": {
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 1.0,
+        "version": 1.0
+      },
+      "misses": [],
+      "questions_with_a_superseded_passage_in_top3": 10,
+      "which": [
+        "q02",
+        "q06",
+        "q07",
+        "q10",
+        "v01",
+        "v02",
+        "v03",
+        "e01",
+        "e03",
+        "i02"
+      ]
+    }
+  },
+  "B": {
+    "stage": "B chunking",
+    "chunks_before": 601,
+    "chunks_after": 842,
+    "embed_seconds": 603,
+    "working": {
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "by_type": {
+        "exact": 1.0,
+        "injection": 1.0,
+        "ordinary": 1.0,
+        "version": 1.0
+      },
+      "misses": []
+    },
+    "broken": {
+      "recall_at_3": 0.7222,
+      "recall_at_5": 0.8333,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 1.0,
+        "ordinary": 0.8,
+        "version": 1.0
+      },
+      "misses": [
+        "q03",
+        "q04",
+        "e02"
+      ]
+    }
+  }
+}

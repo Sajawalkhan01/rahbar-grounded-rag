@@ -1,0 +1,26 @@
+# Used only by the e2e-eval CI job on a throwaway kind cluster: the tiny fixture corpus baked
+# into the indexer image (so no internet is needed) and a stub LLM (CI never calls a model).
+# Embeddings come from an Ollama started on the runner; the workflow rewrites OLLAMA_URL to the
+# runner's address on the kind network when it applies this overlay.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - egress-ollama-runner.yaml
+images:
+  - {name: rahbar-api, newTag: ci}
+  - {name: rahbar-indexer, newTag: ci}
+  - {name: rahbar-ui, newTag: ci}
+patches:
+  - target: {kind: ConfigMap, name: rahbar-config}
+    patch: |-
+      - {op: replace, path: /data/LLM_PROVIDER, value: stub}
+      - {op: replace, path: /data/CORPUS_DIR, value: /fixtures}
+      - {op: replace, path: /data/CHUNK_SIZE, value: "120"}
+      - {op: replace, path: /data/CHUNK_OVERLAP, value: "20"}
+  - target: {kind: Job, name: indexer}
+    patch: |-
+      - {op: remove, path: /spec/template/spec/initContainers}
+  - target: {kind: CronJob, name: reindex}
+    patch: |-
+      - {op: remove, path: /spec/jobTemplate/spec/template/spec/initContainers}

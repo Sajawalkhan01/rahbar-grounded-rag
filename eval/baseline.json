@@ -1,0 +1,235 @@
+{
+  "recall_at_3": 1.0,
+  "recall_at_5": 1.0,
+  "recall_at_3_by_type": {
+    "exact": 1.0,
+    "injection": 1.0,
+    "ordinary": 1.0,
+    "version": 1.0
+  },
+  "recall_at_5_by_type": {
+    "exact": 1.0,
+    "injection": 1.0,
+    "ordinary": 1.0,
+    "version": 1.0
+  },
+  "citation_validity": 1.0,
+  "citations_checked": 28,
+  "abstention_correctness": 1.0,
+  "must_abstain_answered": [],
+  "false_abstentions": [],
+  "per_question": [
+    {
+      "id": "q01",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 3,
+      "cached": false,
+      "seconds": 3.09
+    },
+    {
+      "id": "q02",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 2,
+      "cached": false,
+      "seconds": 1.66
+    },
+    {
+      "id": "q03",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 2.43
+    },
+    {
+      "id": "q04",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 3,
+      "cached": false,
+      "seconds": 1.09
+    },
+    {
+      "id": "q05",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 2,
+      "cached": false,
+      "seconds": 11.96
+    },
+    {
+      "id": "q06",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 2,
+      "cached": false,
+      "seconds": 19.52
+    },
+    {
+      "id": "q07",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 25.54
+    },
+    {
+      "id": "q08",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 2,
+      "cached": false,
+      "seconds": 24.17
+    },
+    {
+      "id": "q09",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 20.2
+    },
+    {
+      "id": "q10",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 14.56
+    },
+    {
+      "id": "v01",
+      "type": "version",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 20.9
+    },
+    {
+      "id": "v02",
+      "type": "version",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 16.46
+    },
+    {
+      "id": "v03",
+      "type": "version",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 21.19
+    },
+    {
+      "id": "e01",
+      "type": "exact",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 10.7
+    },
+    {
+      "id": "e02",
+      "type": "exact",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 11.5
+    },
+    {
+      "id": "e03",
+      "type": "exact",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 12.34
+    },
+    {
+      "id": "a01",
+      "type": "abstain",
+      "recall_at_3": null,
+      "recall_at_5": null,
+      "answered_from_context": false,
+      "citations": 0,
+      "cached": false,
+      "seconds": 0.26
+    },
+    {
+      "id": "a02",
+      "type": "abstain",
+      "recall_at_3": null,
+      "recall_at_5": null,
+      "answered_from_context": false,
+      "citations": 0,
+      "cached": false,
+      "seconds": 0.24
+    },
+    {
+      "id": "a03",
+      "type": "abstain",
+      "recall_at_3": null,
+      "recall_at_5": null,
+      "answered_from_context": false,
+      "citations": 0,
+      "cached": false,
+      "seconds": 8.24
+    },
+    {
+      "id": "i01",
+      "type": "injection",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 3,
+      "cached": false,
+      "seconds": 11.88
+    },
+    {
+      "id": "i02",
+      "type": "injection",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "answered_from_context": true,
+      "citations": 1,
+      "cached": false,
+      "seconds": 14.42
+    }
+  ],
+  "golden": "/mnt/d/SEMESTER 5/SCD/A2/rahbar-starter/rahbar-starter/eval/golden.yaml",
+  "questions": 21
+}

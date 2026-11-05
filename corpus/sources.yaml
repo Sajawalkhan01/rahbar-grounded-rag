@@ -1,0 +1,70 @@
+# The RAHBAR corpus: public FAST-NUCES documents only (nu.edu.pk), checked 3 Nov 2026.
+# Run:  python corpus/fetch.py        (downloads to corpus/raw/, writes MANIFEST.md)
+#       python corpus/fetch.py --verify
+#
+# doc_version and superseded become chunk metadata (section 3.1). A document is marked
+# superseded: true when a newer edition of the same thing is also in the corpus.
+# docs/CORPUS.md maps these entries to the seven required properties.
+
+documents:
+
+  # Property 2 (two versions of one policy) and 7 (exact clause numbers).
+  # The 2023 rules are superseded by the 2026 handbook; both are still on the website.
+  - name: Undergraduate Academic Rules (Aug 2023)
+    url: http://nu.edu.pk/public/downloads/Academic-Rules-Undergrad-Aug-2023.pdf
+    doc_version: "2023-08"
+    superseded: true
+    notes: Older rules, still linked from /Student/RulesUndergrad.
+
+  - name: Academic Rules Handbook (Jun 2026)
+    url: https://nu.edu.pk/public/downloads/Academic_Rules_Handbook_2026.pdf
+    doc_version: "2026-06"
+    superseded: false
+    notes: Current rules, numbered clauses (attendance 1.21, academic warning 5.4).
+
+  # Same rules, a third rendering with different clause numbers.
+  - name: Prospectus 2026 - Academic Rules and Regulations
+    url: https://nu.edu.pk/Admissions/ProspectusUpload/Academic Rules and Regulations.pdf
+    doc_version: "2026"
+    superseded: false
+    notes: The same rules in a few pages with different clause numbers.
+
+  # Property 5: long definitions (the Generative AI policy with numbered sub-sections).
+  - name: Student Handbook (Jun 2026)
+    url: https://nu.edu.pk/public/downloads/Student_Handbook_2026.pdf
+    doc_version: "2026-06"
+    superseded: false
+
+  # Property 4: tables (faculty by campus, graduates, publications), versions over time.
+  - name: Annual Report 2019-20
+    url: https://nu.edu.pk/public/downloads/AnnualReportForm/Annual Report 2019-20.pdf
+    doc_version: "2019-20"
+    superseded: true
+    notes: Superseded by the 2023-24 edition for "latest" questions; still answerable by year.
+
+  - name: Annual Report 2023-24
+    url: https://nu.edu.pk/public/downloads/AnnualReportForm/Annual Report 2023-24.pdf
+    doc_version: "2023-24"
+    superseded: false
+
+  # Property 4 and 7: HTML tables (tuition per credit hour, fees, refunds, grade points).
+  - name: Fee Structure page
+    url: https://www.nu.edu.pk/Admissions/FeeStructure
+    doc_version: "2026-27"
+    superseded: false
+
+  - name: Grading page
+    url: https://www.nu.edu.pk/Student/Grading
+    doc_version: "2026"
+    superseded: false
+
+  # Property 3: scanned, image-only PDF (verified with pdffonts / empty text layer).
+  - name: Faculty Entrepreneurship and Technical Start-ups Policy
+    url: https://nu.edu.pk/OricResources/ResearchPolicies/27.pdf?20220530
+    doc_version: "2022-05"
+    superseded: false
+
+  # Property 6: the deliberately absent topic is hostel and transport rules. The document
+  # that covers it is left out on purpose:
+  #   https://nu.edu.pk/Admissions/ProspectusUpload/Transport and Hostel Facilities.pdf
+  # The golden set asks about it and expects the system to decline.

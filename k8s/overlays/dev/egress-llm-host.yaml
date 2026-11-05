@@ -1,0 +1,15 @@
+# Ollama runs on the laptop (LLM_PROVIDER=ollama-host). The api (generation, query embeddings)
+# and the indexer (document embeddings) may reach ONLY the host on port 11434. The host
+# address is what `minikube ssh "grep host.minikube.internal /etc/hosts"` prints.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: egress-ollama-host, namespace: rahbar}
+spec:
+  podSelector:
+    matchExpressions:
+      - {key: app, operator: In, values: [api, indexer]}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock: {cidr: 192.168.49.1/32}
+      ports: [{protocol: TCP, port: 11434}]

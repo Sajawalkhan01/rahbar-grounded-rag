@@ -1,0 +1,180 @@
+name: ci
+
+# On every pull request to main and every push to dev. Nothing here publishes an image.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r api/requirements-dev.txt -r indexer/requirements-dev.txt
+      - run: ruff check api indexer eval corpus tests
+      - run: cd api && mypy app
+      - run: cd indexer && mypy pipeline
+
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      # tesseract and poppler: the OCR tests run for real, as they do in the indexer image.
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
+      - run: pip install -r api/requirements-dev.txt -r indexer/requirements-dev.txt
+      # Stub provider, fake Chroma, fake Redis: no network, no model.
+      - run: cd api && pytest -q --cov=app --cov-report=term-missing --cov-fail-under=60
+      - run: cd indexer && pytest -q --cov=pipeline --cov-report=term-missing
+      - run: pytest -q tests
+
+  manifests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz kubeconform
+          sudo mv kubeconform /usr/local/bin/
+      - name: Validate every overlay (strict)
+        run: |
+          for overlay in dev prod ci smoke; do
+            echo "== $overlay"
+            kubectl kustomize "k8s/overlays/$overlay" | kubeconform -strict -summary -ignore-missing-schemas
+          done
+
+  build:
+    needs: [lint, test]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - {name: api, context: api, file: api/Dockerfile}
+          - {name: indexer, context: ., file: indexer/Dockerfile}   # needs corpus/ and eval/fixtures
+          - {name: ui, context: ui, file: ui/Dockerfile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      # No registry push: the image goes to a local tar, so a pull request can never publish.
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          tags: rahbar-${{ matrix.name }}:ci
+          outputs: type=docker,dest=/tmp/${{ matrix.name }}.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-${{ matrix.name }}
+          path: /tmp/${{ matrix.name }}.tar
+          retention-days: 1
+
+  scan:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        name: [api, indexer, ui]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: image-${{ matrix.name }}
+          path: /tmp
+      - run: docker load -i /tmp/${{ matrix.name }}.tar
+      # Fail on HIGH or CRITICAL findings that have a fix available. Trivy runs from its
+      # published image (pinned), which avoids the setup action's own download step.
+      - name: Scan rahbar-${{ matrix.name }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.65.0 image             --db-repository public.ecr.aws/aquasecurity/trivy-db:2             --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 rahbar-${{ matrix.name }}:ci
+
+  e2e-eval:
+    needs: [test, manifests, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install httpx==0.28.1 pyyaml==6.0.2
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: image-*
+          path: /tmp/images
+          merge-multiple: true
+      - name: Create a kind cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: rahbar
+      - name: Load the images built in this run
+        run: |
+          for n in api indexer ui; do
+            docker load -i /tmp/images/$n.tar
+            kind load docker-image rahbar-$n:ci --name rahbar
+          done
+      # Embeddings need a real model, so Ollama runs on the runner and the pods reach it
+      # over the kind network. (The LLM itself is the stub in CI: nothing is generated.)
+      - name: Start Ollama with the pinned embedding model
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          OLLAMA_HOST=0.0.0.0:11434 nohup ollama serve > /tmp/ollama.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:11434/api/version && break; sleep 2; done
+          ollama pull nomic-embed-text
+      - name: Deploy the ci overlay
+        run: |
+          # The IPv4 gateway of the kind network (the first entry can be IPv6), where Ollama listens.
+          GATEWAY=$(docker network inspect kind -f '{{range .IPAM.Config}}{{.Gateway}} {{end}}' | grep -oE '([0-9]+[.]){3}[0-9]+' | head -1)
+          echo "Ollama gateway: ${GATEWAY}"; curl -sf "http://${GATEWAY}:11434/api/version"
+          kubectl kustomize k8s/overlays/ci \
+            | sed "s#http://host.minikube.internal:11434#http://${GATEWAY}:11434#" \
+            | kubectl apply -f -
+      - name: Run the indexer Job on the fixture corpus
+        run: |
+          # Print the Job's log as it runs: after a failure the pod is deleted and its log is gone.
+          ( while true; do sleep 20; kubectl logs job/indexer -n rahbar --all-containers --tail=15 2>&1 | sed 's/^/[indexer] /';             kubectl logs job/indexer -n rahbar --all-containers --previous --tail=15 2>&1 | sed 's/^/[indexer previous] /'; done ) &
+          kubectl wait --for=condition=complete job/indexer -n rahbar --timeout=15m || {
+            kubectl logs job/indexer -n rahbar --all-containers --tail=100; exit 1; }
+      - name: Wait for the rollout
+        run: |
+          kubectl rollout status deployment/api -n rahbar --timeout=5m
+          kubectl rollout status deployment/ui -n rahbar --timeout=5m
+          kubectl get pods,endpoints,hpa -n rahbar
+      - name: Smoke test and the evaluation gate
+        run: |
+          kubectl port-forward svc/api 8000:8000 -n rahbar &
+          for i in $(seq 1 30); do curl -sf localhost:8000/readyz > /dev/null && break; sleep 2; done
+          curl -s -X POST localhost:8000/api/ask -H 'Content-Type: application/json' \
+            -d '{"question": "When is a student placed on academic warning?"}'
+          python eval/run_eval.py --api http://localhost:8000 \
+            --golden eval/fixtures/golden.fixture.yaml \
+            --baseline eval/fixtures/baseline.fixture.json --out /tmp/fixture-results.json
+      - name: Show the cluster on failure
+        if: failure()
+        run: |
+          kubectl get pods,job -n rahbar -o wide || true
+          kubectl describe job indexer -n rahbar | tail -40 || true
+          kubectl get events -n rahbar --sort-by=.lastTimestamp | tail -40 || true
+          kubectl logs -l app=api -n rahbar --tail=60 || true
+          kubectl logs chroma-0 -n rahbar --tail=60 || true
+          kubectl logs chroma-0 -n rahbar --previous --tail=60 || true
+          kubectl logs -l app=indexer -n rahbar --all-containers --tail=60 || true
+          kubectl describe pods -n rahbar | tail -80 || true

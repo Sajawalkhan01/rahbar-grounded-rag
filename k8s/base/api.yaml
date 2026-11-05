@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: rahbar
+  labels: {app: api, app.kubernetes.io/part-of: rahbar}
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: api}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1          # one extra pod during a rollout...
+      maxUnavailable: 0    # ...and never fewer ready pods than replicas: no downtime
+  template:
+    metadata:
+      labels: {app: api, app.kubernetes.io/part-of: rahbar}
+    spec:
+      serviceAccountName: api
+      # Kubernetes would inject CHROMA_PORT=tcp://... for the Service named chroma; Chroma reads
+      # every CHROMA_* variable as its own config and panics. No pod here uses service links.
+      enableServiceLinks: false
+      automountServiceAccountToken: false
+      # The preStop sleep lets the Service stop sending traffic before the process gets
+      # SIGTERM; the grace period must be longer than the sleep plus the slowest request.
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: api
+          image: rahbar-api:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 8000}
+          envFrom:
+            - configMapRef: {name: rahbar-config}
+          env:
+            - name: LLM_API_KEY          # only used when LLM_PROVIDER=hosted
+              valueFrom:
+                secretKeyRef: {name: rahbar-secret, key: LLM_API_KEY, optional: true}
+          # Probes, three jobs (section 4.3):
+          startupProbe:                  # finished booting? liveness/readiness wait for it
+            httpGet: {path: /healthz, port: 8000}
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:                 # still alive? depends on NOTHING else
+            httpGet: {path: /healthz, port: 8000}
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:                # can it take traffic? checks Chroma, index, pin, Redis
+            httpGet: {path: /readyz, port: 8000}
+            periodSeconds: 10
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec: {command: ["sleep", "10"]}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: rahbar
+  labels: {app: api}
+spec:
+  type: ClusterIP
+  selector: {app: api}
+  ports:
+    - {name: http, port: 8000, targetPort: 8000}

@@ -1,0 +1,91 @@
+# Chroma is a StatefulSet, not a Deployment: it owns a volume, and volumeClaimTemplates gives
+# each replica its own PVC that survives pod deletion and rescheduling. The index lives in
+# /data on that volume. Only the indexer writes to it; the api reads (NetworkPolicy allows
+# both, nobody else).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: chroma
+  namespace: rahbar
+  labels: {app: chroma, app.kubernetes.io/part-of: rahbar}
+spec:
+  serviceName: chroma
+  replicas: 1
+  selector:
+    matchLabels: {app: chroma}
+  template:
+    metadata:
+      labels: {app: chroma, app.kubernetes.io/part-of: rahbar}
+    spec:
+      serviceAccountName: chroma
+      # Kubernetes would inject CHROMA_PORT=tcp://... for the Service named chroma; Chroma reads
+      # every CHROMA_* variable as its own config and panics. No pod here uses service links.
+      enableServiceLinks: false
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000            # makes the PVC writable by uid 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: chroma
+          # Pinned, and the SAME version as chromadb-client in api/ and indexer/requirements.txt.
+          image: chromadb/chroma:1.0.12
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 8000}
+          env:
+            - {name: IS_PERSISTENT, value: "TRUE"}
+            - {name: PERSIST_DIRECTORY, value: /data}
+            - {name: ANONYMIZED_TELEMETRY, value: "FALSE"}
+          startupProbe:
+            httpGet: {path: /api/v2/heartbeat, port: 8000}
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:
+            httpGet: {path: /api/v2/heartbeat, port: 8000}
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: {path: /api/v2/heartbeat, port: 8000}
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - {name: data, mountPath: /data}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 2Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chroma
+  namespace: rahbar
+  labels: {app: chroma}
+spec:
+  type: ClusterIP          # never NodePort or LoadBalancer: only the api and indexer may connect
+  selector: {app: chroma}
+  ports:
+    - {name: http, port: 8000, targetPort: 8000}

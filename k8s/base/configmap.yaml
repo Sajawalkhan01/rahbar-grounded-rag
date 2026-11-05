@@ -1,0 +1,35 @@
+# One ConfigMap feeds the api, the indexer Job and the reindex CronJob. EMBED_MODEL lives here
+# ONCE, so the writer and the reader of the index cannot be configured to disagree (and the
+# api checks it against the index anyway: api/app/retrieval/pin.py).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rahbar-config
+  namespace: rahbar
+data:
+  # --- the embedding pin (section 4.4) ---
+  EMBED_MODEL: "nomic-embed-text"
+  # --- what the api loads ---
+  RETRIEVER: "chroma"
+  LLM_PROVIDER: "ollama-host"          # stub | ollama-host | ollama-incluster | hosted
+  LLM_MODEL: "llama3.2:3b"
+  LLM_TIMEOUT_SECONDS: "240"
+  OLLAMA_URL: "http://host.minikube.internal:11434"   # also used by the indexer for embeddings
+  HOSTED_BASE_URL: ""
+  # Facts and JSON belong at 0 to 0.3: a low value keeps the answer close to the evidence.
+  TEMPERATURE: "0.1"
+  TOP_K: "5"
+  RELEVANCE_FLOOR: "0.70"              # measured: declined questions 0.59-0.60, plain answerable >= 0.756
+  CACHE_THRESHOLD: "0.94"              # lowest value with zero false hits (0.92 served clause 1.22 for 1.21)
+  CACHE_TTL_SECONDS: "86400"
+  # --- backing services ---
+  CHROMA_HOST: "chroma"
+  CHROMA_PORT: "8000"
+  CHROMA_COLLECTION: "rahbar"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  # --- the indexer (chunk size is in words) ---
+  CHUNK_SIZE: "400"
+  CHUNK_OVERLAP: "50"
+  CORPUS_DIR: "/corpus"
+  LOG_LEVEL: "INFO"

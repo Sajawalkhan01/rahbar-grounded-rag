@@ -1,0 +1,21 @@
+# NetworkPolicy checks (Calico enforces them). Policies: k8s/base/networkpolicy.yaml
+Wed Nov  4 16:48:17 UTC 2026
+ui -> chroma:8000 (should be BLOCKED)
+000
+command terminated with exit code 28
+curl exit=28 (28 = timed out)
+ui -> redis:6379 (should be BLOCKED)
+command terminated with exit code 28
+curl exit=28 (28 = timed out)
+ui -> api:8000 (blocked too: the ui never calls the api; the Ingress routes /api to it)
+000
+command terminated with exit code 28
+curl exit=28
+api -> chroma:8000 (allowed)
+200
+api -> redis:6379 (allowed)
+CONNECTED
+api -> the internet 1.1.1.1:443 (should be BLOCKED)
+BLOCKED TimeoutError
+ingress -> ui via http://rahbar.local/ (allowed)
+200

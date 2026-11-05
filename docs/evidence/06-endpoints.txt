@@ -1,0 +1,12 @@
+Wed Nov  4 16:28:03 UTC 2026
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME   ENDPOINTS                                                    AGE
+api    10.244.120.100:8000,10.244.120.105:8000,10.244.120.98:8000   4h31m
+NAME                   READY   STATUS        RESTARTS   AGE     IP               NODE       NOMINATED NODE   READINESS GATES
+api-54bc84b6fb-7vf4h   1/1     Terminating   0          6m29s   10.244.120.103   minikube   <none>           <none>
+api-54bc84b6fb-8tl25   1/1     Running       0          5m51s   10.244.120.105   minikube   <none>           <none>
+api-54bc84b6fb-92xnx   1/1     Terminating   0          5m16s   10.244.120.107   minikube   <none>           <none>
+api-54bc84b6fb-9ttzl   1/1     Running       0          7m11s   10.244.120.98    minikube   <none>           <none>
+api-54bc84b6fb-k7tll   1/1     Terminating   0          6m9s    10.244.120.104   minikube   <none>           <none>
+api-54bc84b6fb-pc5kq   1/1     Terminating   0          5m34s   10.244.120.106   minikube   <none>           <none>
+api-54bc84b6fb-wc9r5   1/1     Running       0          6m58s   10.244.120.100   minikube   <none>           <none>

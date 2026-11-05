@@ -1,0 +1,23 @@
+# The CD workflow's deployment target: the PROD overlay (registry images tagged with the commit
+# SHA) on an ephemeral kind cluster, with the pieces an empty cluster cannot have: the tiny
+# fixture corpus instead of a download, and the stub LLM instead of a model or an API key.
+# The workflow replaces DOCKERHUB_USER and REPLACE_SHA in the rendered output and points
+# OLLAMA_URL at the runner, where Ollama serves the embedding model.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../prod
+  - egress-ollama-runner.yaml
+patches:
+  - target: {kind: ConfigMap, name: rahbar-config}
+    patch: |-
+      - {op: replace, path: /data/LLM_PROVIDER, value: stub}
+      - {op: replace, path: /data/CORPUS_DIR, value: /fixtures}
+      - {op: replace, path: /data/CHUNK_SIZE, value: "120"}
+      - {op: replace, path: /data/CHUNK_OVERLAP, value: "20"}
+  - target: {kind: Job, name: indexer}
+    patch: |-
+      - {op: remove, path: /spec/template/spec/initContainers}
+  - target: {kind: CronJob, name: reindex}
+    patch: |-
+      - {op: remove, path: /spec/jobTemplate/spec/template/spec/initContainers}

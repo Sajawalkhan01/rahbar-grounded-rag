@@ -1,0 +1,118 @@
+[
+  {
+    "size": 150,
+    "overlap": 20,
+    "chunks": 1030,
+    "amplification": 1.067,
+    "embed_seconds": 1594,
+    "hybrid": {
+      "recall_at_3": 0.75,
+      "recall_at_5": 0.8333,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 0.5,
+        "ordinary": 1.0,
+        "version": 0.6667
+      },
+      "misses": [
+        "v02",
+        "e01",
+        "i02"
+      ]
+    },
+    "dense": {
+      "recall_at_3": 0.7778,
+      "recall_at_5": 0.7778,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 0.5,
+        "ordinary": 0.9,
+        "version": 0.6667
+      },
+      "misses": [
+        "q10",
+        "v02",
+        "e01",
+        "i02"
+      ]
+    }
+  },
+  {
+    "size": 400,
+    "overlap": 50,
+    "chunks": 819,
+    "amplification": 1.004,
+    "embed_seconds": 942,
+    "hybrid": {
+      "recall_at_3": 0.8333,
+      "recall_at_5": 0.8333,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 0.5,
+        "ordinary": 1.0,
+        "version": 0.6667
+      },
+      "misses": [
+        "v02",
+        "e01",
+        "i02"
+      ]
+    },
+    "dense": {
+      "recall_at_3": 0.8333,
+      "recall_at_5": 0.8333,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 0.5,
+        "ordinary": 1.0,
+        "version": 0.6667
+      },
+      "misses": [
+        "v02",
+        "e01",
+        "i02"
+      ]
+    }
+  },
+  {
+    "size": 800,
+    "overlap": 100,
+    "chunks": 786,
+    "amplification": 0.984,
+    "embed_seconds": 1000,
+    "hybrid": {
+      "recall_at_3": 0.7222,
+      "recall_at_5": 0.7222,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 0.5,
+        "ordinary": 0.8,
+        "version": 0.6667
+      },
+      "misses": [
+        "q08",
+        "q09",
+        "v02",
+        "e01",
+        "i02"
+      ]
+    },
+    "dense": {
+      "recall_at_3": 0.7222,
+      "recall_at_5": 0.7222,
+      "by_type": {
+        "exact": 0.6667,
+        "injection": 0.5,
+        "ordinary": 0.8,
+        "version": 0.6667
+      },
+      "misses": [
+        "q08",
+        "q09",
+        "v02",
+        "e01",
+        "i02"
+      ]
+    }
+  }
+]

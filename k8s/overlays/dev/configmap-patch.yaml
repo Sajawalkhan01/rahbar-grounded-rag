@@ -1,0 +1,9 @@
+# CPU-only Ollama on a laptop pays for every prompt token (about 25 tokens/s), so the dev
+# overlay sends three passages, not five. recall@3 was 1.0 on the golden set (docs/PIPELINE.md).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rahbar-config
+  namespace: rahbar
+data:
+  TOP_K: "3"
