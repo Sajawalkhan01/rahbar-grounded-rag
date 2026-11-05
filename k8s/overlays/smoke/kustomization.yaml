@@ -7,6 +7,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../prod
+  - egress-ollama-runner.yaml
 patches:
   - target: {kind: ConfigMap, name: rahbar-config}
     patch: |-

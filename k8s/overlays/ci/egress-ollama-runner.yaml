@@ -1,0 +1,16 @@
+# On a CI runner Ollama serves the embedding model on the runner, which a kind pod reaches at the
+# gateway of the docker network "kind" (an address in 172.16.0.0/12, known only at run time, and
+# patched into OLLAMA_URL by the workflow). Under default-deny the api (query embeddings, pin
+# check) and the indexer (document embeddings) may reach that range on port 11434 and nothing else.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: egress-ollama-runner, namespace: rahbar}
+spec:
+  podSelector:
+    matchExpressions:
+      - {key: app, operator: In, values: [api, indexer]}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock: {cidr: 172.16.0.0/12}
+      ports: [{protocol: TCP, port: 11434}]
