@@ -248,3 +248,19 @@ def test_a_low_score_without_an_exact_term_still_abstains() -> None:
     provider = ScriptedProvider(good_answer(low))
     r = answer_question("What is the hostel curfew?", FakeRetriever([low]), provider, settings())
     assert not r.answered_from_context and provider.calls == 0
+
+
+def test_a_question_whose_phrase_appears_in_a_passage_is_relevant_despite_a_low_score() -> None:
+    """A fee table scores low against an embedding, but it contains the words "Late Registration Fee"."""
+    low = passage(1, score=0.3, text="Miscellaneous Fees: Late Registration Fee/Freeze Fee PKR 5,000 per course.")
+    provider = ScriptedProvider(good_answer(low))
+    r = answer_question("What is the Late Registration Fee in the fee structure?",
+                        FakeRetriever([low]), provider, settings())
+    assert r.answered_from_context and provider.calls == 1
+
+
+def test_a_shared_word_or_two_is_not_enough_to_rescue_a_low_score() -> None:
+    low = passage(1, score=0.3, text="Miscellaneous Fees: Late Registration Fee PKR 5,000 per course.")
+    provider = ScriptedProvider(good_answer(low))
+    r = answer_question("What is the monthly hostel fee?", FakeRetriever([low]), provider, settings())
+    assert not r.answered_from_context and provider.calls == 0

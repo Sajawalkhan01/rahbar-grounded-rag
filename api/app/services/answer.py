@@ -50,12 +50,26 @@ def _is_relevant(question: str, passages: list[Passage], floor: float) -> bool:
     0.70; see docs/PIPELINE.md).
     """
     terms = exact_terms(question)
+    phrases = _phrases(tokenize(question))
     for p in passages:
         if p.score >= floor:
             return True
-        if terms and any(t in set(tokenize(p.text)) for t in terms):
+        words = tokenize(p.text)
+        if terms and any(t in set(words) for t in terms):
+            return True
+        if phrases & _phrases(tokenize(p.text.replace("/", " "))):
             return True
     return False
+
+
+PHRASE_WORDS = 3
+
+
+def _phrases(words: list[str]) -> set[tuple[str, ...]]:
+    """Runs of PHRASE_WORDS consecutive content words. A question such as "the Late Registration
+    Fee" names its subject in words, not numbers; a passage that contains the same three
+    content words in a row is about it even when a table's embedding score is low (0.67 here)."""
+    return {tuple(words[i : i + PHRASE_WORDS]) for i in range(len(words) - PHRASE_WORDS + 1)}
 
 
 def _refs(passages: list[Passage]) -> list[RetrievedRef]:
