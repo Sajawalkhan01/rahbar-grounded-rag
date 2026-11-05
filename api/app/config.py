@@ -11,6 +11,12 @@ import os
 from dataclasses import dataclass, field
 
 
+def _clean_secret(value: str) -> str:
+    """Keep printable ASCII only. A key pasted into a terminal can carry an invisible control
+    character (the end-of-paste escape, 0x1b), which a provider rejects as a malformed header."""
+    return "".join(c for c in value if 32 < ord(c) < 127)
+
+
 def _int(name: str, default: int) -> int:
     return int(os.environ.get(name, default))
 
@@ -79,7 +85,7 @@ def get_settings() -> Settings:
         llm_model=os.environ.get("LLM_MODEL", "llama3.2:3b"),
         ollama_url=os.environ.get("OLLAMA_URL", "http://host.minikube.internal:11434"),
         hosted_base_url=os.environ.get("HOSTED_BASE_URL", ""),
-        llm_api_key=os.environ.get("LLM_API_KEY", ""),
+        llm_api_key=_clean_secret(os.environ.get("LLM_API_KEY", "")),
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
         relevance_floor=_float("RELEVANCE_FLOOR", 0.70),
         candidate_pool=_int("CANDIDATE_POOL", 20),

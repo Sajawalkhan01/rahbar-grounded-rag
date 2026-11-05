@@ -95,6 +95,48 @@ def test_hosted_errors_never_contain_the_api_key(monkeypatch: pytest.MonkeyPatch
     assert SECRET not in str(info.value) and "401" in str(info.value)
 
 
+def test_hosted_errors_carry_the_providers_reason_but_not_the_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    _fake_post(monkeypatch, {"error": {"message": f"model has been decommissioned ({SECRET})"}}, status=400)
+    s = settings(llm_provider="hosted", hosted_base_url="https://api.example.com/v1", llm_api_key=SECRET)
+    with pytest.raises(ProviderError) as info:
+        HostedProvider(s).generate("q?", [passage(1)])
+    assert "decommissioned" in str(info.value) and SECRET not in str(info.value)
+
+
+def test_a_pasted_key_loses_invisible_characters(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config import get_settings
+
+    monkeypatch.setenv("LLM_API_KEY", " gsk_abc123\x1b\r\n")
+    assert get_settings().llm_api_key == "gsk_abc123"
+
+
+def test_hosted_waits_out_a_rate_limit_and_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    replies = [httpx.Response(429, json={"error": {"message": "Rate limit. Please try again in 2.5s."}}),
+               httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(REPLY)}}]})]
+    sleeps: list[float] = []
+
+    def post(url: str, **_k: Any) -> httpx.Response:
+        r = replies.pop(0)
+        r.request = httpx.Request("POST", url)
+        return r
+
+    monkeypatch.setattr(httpx, "post", post)
+    monkeypatch.setattr("app.providers.llm.hosted.time.sleep", sleeps.append)
+    s = settings(llm_provider="hosted", hosted_base_url="https://api.example.com/v1", llm_api_key=SECRET)
+    assert HostedProvider(s).generate("q?", [passage(1)]).answered_from_context
+    assert sleeps == [3.0]
+
+
+def test_hosted_does_not_wait_for_a_long_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    sleeps: list[float] = []
+    _fake_post(monkeypatch, {"error": {"message": "limit. Please try again in 600s."}}, status=429)
+    monkeypatch.setattr("app.providers.llm.hosted.time.sleep", sleeps.append)
+    s = settings(llm_provider="hosted", hosted_base_url="https://api.example.com/v1", llm_api_key=SECRET)
+    with pytest.raises(ProviderError, match="429"):
+        HostedProvider(s).generate("q?", [passage(1)])
+    assert sleeps == []
+
+
 def test_hosted_needs_a_key_and_a_url() -> None:
     with pytest.raises(ValueError):
         HostedProvider(settings(llm_provider="hosted", hosted_base_url=""))
