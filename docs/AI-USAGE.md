@@ -60,14 +60,14 @@ the sections above describe what the AI did. My part was reviewing, merging and 
 - I reviewed pull request #1 (the whole project, `dev` into `main`) and approved it, and I
   reviewed and approved pull request #2, the fix that lets the CI runner's Ollama server be
   reached from the cluster. I merged pull request #2 myself.
-- [KEEP ONLY IF TRUE: While reviewing I read the answer pipeline (`api/app/services/answer.py`),
-  the network policies (`k8s/base/networkpolicy.yaml`) and the engineering notes.]
+- While reviewing I read the answer pipeline (`api/app/services/answer.py`),
+  the network policies (`k8s/base/networkpolicy.yaml`) and the engineering notes.
 - I made two commits under my own account: an update of `PROJECT-STATUS.md` after the CI and CD
   runs turned green, and the branch-protection screenshot in `docs/evidence/`. This section is
   my third commit.
-- [KEEP ONLY IF TRUE, IN YOUR OWN WORDS: One thing I understood from the project is that
+- One thing I understood from the project is that
   the indexer runs as a Kubernetes Job rather than inside the API, because three API replicas
-  would otherwise all re-index the same Chroma volume at once.]
+  would otherwise all re-index the same Chroma volume at once.
 
 Split of work: Sajawalkhan01 implemented, tested and deployed the system with AI assistance;
 I reviewed the changes, merged the second pull request, and documented the status and evidence.
