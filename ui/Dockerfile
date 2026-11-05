@@ -2,6 +2,10 @@
 # nginx-unprivileged runs as uid 101 and nginx.conf listens on 8080 and writes only under /tmp
 # (the Deployment mounts an emptyDir there).
 FROM nginxinc/nginx-unprivileged:1.27.5-alpine
+# The base image's own packages age; take the fixed versions the distribution already ships
+# (curl, openssl, c-ares ...), then drop back to the unprivileged user.
+USER root
+RUN apk upgrade --no-cache
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY index.html /usr/share/nginx/html/index.html
 USER 101
