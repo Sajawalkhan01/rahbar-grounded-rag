@@ -136,6 +136,9 @@ jobs:
       - name: Start Ollama with the pinned embedding model
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
+          # The installer also starts a service bound to 127.0.0.1, which a kind pod cannot reach
+          # and which would keep our own server off the port. Stop it, then listen on all interfaces.
+          sudo systemctl stop ollama || true
           OLLAMA_HOST=0.0.0.0:11434 nohup ollama serve > /tmp/ollama.log 2>&1 &
           for i in $(seq 1 30); do curl -sf localhost:11434/api/version && break; sleep 2; done
           ollama pull nomic-embed-text
