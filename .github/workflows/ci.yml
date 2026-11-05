@@ -141,12 +141,16 @@ jobs:
           ollama pull nomic-embed-text
       - name: Deploy the ci overlay
         run: |
-          GATEWAY=$(docker network inspect kind -f '{{(index .IPAM.Config 0).Gateway}}')
+          # The IPv4 gateway of the kind network (the first entry can be IPv6), where Ollama listens.
+          GATEWAY=$(docker network inspect kind -f '{{range .IPAM.Config}}{{.Gateway}} {{end}}' | grep -oE '([0-9]+[.]){3}[0-9]+' | head -1)
+          echo "Ollama gateway: ${GATEWAY}"; curl -sf "http://${GATEWAY}:11434/api/version"
           kubectl kustomize k8s/overlays/ci \
             | sed "s#http://host.minikube.internal:11434#http://${GATEWAY}:11434#" \
             | kubectl apply -f -
       - name: Run the indexer Job on the fixture corpus
         run: |
+          # Print the Job's log as it runs: after a failure the pod is deleted and its log is gone.
+          ( while true; do sleep 20; kubectl logs job/indexer -n rahbar --all-containers --tail=15 2>&1 | sed 's/^/[indexer] /';             kubectl logs job/indexer -n rahbar --all-containers --previous --tail=15 2>&1 | sed 's/^/[indexer previous] /'; done ) &
           kubectl wait --for=condition=complete job/indexer -n rahbar --timeout=15m || {
             kubectl logs job/indexer -n rahbar --all-containers --tail=100; exit 1; }
       - name: Wait for the rollout
