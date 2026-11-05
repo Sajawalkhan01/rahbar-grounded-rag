@@ -18,7 +18,7 @@ Updated 5 Nov 2026 (evening). Status words mean exactly this:
 | API | hybrid retrieval, version filter, floor, cache, validation, citations | VERIFIED | 98 tests; answered, cached and declined on the live stack |
 | API | embedding-pin guardrail in `/readyz` | VERIFIED | `docs/evidence/10-embed-mismatch.txt` |
 | Eval | golden set (21 questions), metrics, gate | VERIFIED | `eval/results.json`: recall@5 1.00, citation validity 1.00, 0 false abstentions, 0 must-abstain answered |
-| Failure analysis | four stages broken on purpose | VERIFIED | A, B, C, E in `docs/FAILURE-ANALYSIS.md`; D and F not run |
+| Failure analysis | stages broken on purpose | VERIFIED | all six in `docs/FAILURE-ANALYSIS.md`: A, B, C, E on retrieval; D and F on the live hosted model (no visible effect, reported as is) |
 | Docker | three images build, non-root, no fixable HIGH/CRITICAL | VERIFIED | local Trivy scan clean after the ui fix |
 | Kubernetes | all objects, probes, HPA, NetworkPolicies, overlays | VERIFIED | rendered and applied on minikube; evidence 04 to 15 |
 | Kubernetes | delete a pod, scale, rollout, rollback, persistence | VERIFIED | `docs/evidence/09` to `14` |

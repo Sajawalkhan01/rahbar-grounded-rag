@@ -5,9 +5,10 @@ working index and the same golden set (18 retrievable questions, `eval/golden.ya
 same recall functions as the CI gate. Tool: `eval/failure_experiments.py`; raw numbers:
 `eval/failure_experiments_results.json`. The working baseline is the 400-word / 50-overlap index of
 601 chunks (`rahbar_exp_400_50`), which scores recall@3 1.00 and recall@5 1.00 on every question
-type. Stages **A, B, C and E** were run. D (prompt) and F (generation) were not, because they need
-the language model and the only one available during these runs was a CPU model that already
-declined to answer from correct passages; see the note at the end.
+type. Stages **A, B, C and E** change only what is retrieved, so they were measured first, on the
+retrieval side. Stages **D (prompt) and F (generation)** need a real language model and were run
+afterwards on the live stack with the hosted model (section at the end): they did not reproduce a
+visible failure, and that is reported as it is. All six stages were run.
 
 Order of diagnosis, from the lecture: only F is the model's fault, so check A to E first.
 
@@ -85,10 +86,63 @@ Order of diagnosis, from the lecture: only F is the model's fault, so check A to
   for one (older words, a named superseded version, or a year that only the old document has). Next
   step, not done: add the superseded-in-top-3 count to `eval/run_eval.py` so the gate can fail on it.
 
-## Stages not run
-* **D · Prompt** (remove the "use the supplied context" rule) and **F · Generation** (temperature
-  1.2) change only what the language model does with correct passages. During these runs the
-  only model available was `llama3.2:3b` on a CPU at about 2 tokens per second, which already
-  answered "N/A" to a question whose correct passage was ranked first, so a controlled
-  comparison would have measured noise. They are left unrun rather than reported from a
-  single sample.
+## Stages D and F · measured on the live model
+
+Tool: `eval/failure_experiments_llm.py` (run inside an api pod, where the hosted provider and its
+key already exist); data: `eval/failure_experiments_llm_results.json`. Model: `openai/gpt-oss-20b`
+on Groq. Twelve golden questions (the three must-abstain, both injection questions, three ordinary,
+three version, one exact term), cache off so every answer is generated, **one run per condition**.
+
+| Condition | What changed | Answered (of 12) | Must-abstain answered | False abstentions | Fallbacks | Invented citations removed | Prompt leaked |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| base | nothing (floor 0.70, temperature 0.1) | 9 | 0 | 0 | 0 | 0 | 0 |
+| base, floor off | relevance floor 0.0 | 9 | 0 | 0 | 0 | 0 | 0 |
+| **D** | rule 1 removed from the system prompt | 9 | 0 | 0 | 0 | **1** | 0 |
+| D, floor off | rule 1 removed and floor 0.0 | 9 | 0 | 0 | 0 | 0 | 0 |
+| D, strong | rules 1 and 3 removed ("answer only from the passages", "say you do not know"), floor 0.0 | 9 | 0 | 0 | 0 | 0 | 0 |
+| **F** | temperature 1.2 | 9 | 0 | 0 | 0 | 0 | 0 |
+
+### Stage D · Prompt
+- **What we broke:** removed rule 1 ("Answer ONLY from the numbered evidence passages ... use the
+  supplied context, never your own knowledge") from `SYSTEM_PROMPT` (`api/app/services/prompt.py:19`);
+  then, as the strongest version, rule 3 as well (the instruction to decline when the evidence does
+  not contain the answer) with the relevance floor off, so the prompt was the only defence left.
+- **Symptom:** almost none. All three must-abstain questions were still declined in every variant,
+  nothing leaked the prompt, and no answerable question was declined. The only movement: with only
+  rule 1 removed (floor on) the model produced **one citation that matched no retrieved passage**, and
+  the citation check removed it (`invalid_citations_removed` 1 against 0). In the other D conditions
+  that number was 0, so it is one observation in one run, not a trend.
+- **Diagnosis, as if we had not caused it:** the numbers that would show a weakened prompt are
+  `rahbar_citations_removed_total` (the model invents citations), the must-abstain answers in the
+  evaluation gate, and answers whose text is not in the retrieved passages. Here the first moved
+  once and the others did not move at all, so on this evidence alone the change would have gone
+  unnoticed. That is itself the finding: the prompt rule is one layer of several. What held was the
+  structured output (the model sets `answered_from_context` itself), the validator, the citation
+  check, and the model's own behaviour; the relevance floor was not needed for these twelve questions.
+- **Remedy:** keep rule 1 in the prompt (it is cheap and it stops the first fabricated citation),
+  and keep the guardrails that do not depend on the model's good behaviour.
+- **What this does not show.** One model, one run per condition, twelve questions. A weaker or
+  differently trained model (the local `llama3.2:3b` was already unreliable at the task) may well
+  answer from its own memory without rule 1. This experiment found no effect on this model; it did
+  not prove there is none.
+
+### Stage F · Generation
+- **What we broke:** `TEMPERATURE` 1.2 instead of 0.1 (`k8s/base/configmap.yaml`, read through
+  `api/app/config.py`; the hosted provider sends it in the request, `api/app/providers/llm/hosted.py`).
+- **Symptom:** none measurable on this model: the same nine questions were answered, the same three
+  declined, no fallback (output that failed validation twice), no invented citation.
+- **Diagnosis, as if we had not caused it:** the numbers that would show it are
+  `rahbar_fallbacks_total` (the model's JSON failed validation twice), the `"attempts": 2` field in the
+  per-request log line, `rahbar_citations_removed_total`, and answers that differ between two runs of
+  the same question. None of these moved. Whether the provider limits the value, or this model is
+  simply robust at 1.2, was not tested, so no explanation is claimed.
+- **Remedy:** `TEMPERATURE` back to 0.1; facts and JSON belong at 0 to 0.3 (the comment in the
+  ConfigMap and `docs/adr/0004-llm-provider-and-data-governance.md`).
+
+### What D and F, together with A to E, say
+Stages A, B, C and E each cost measurable recall or put an old version in the answer's context, and
+they were all caught by the retrieval metrics. D and F, which are the model's part of the pipeline,
+did not change any metric here, because the pipeline checks the model's output (JSON schema,
+citation matching, validation with a retry and a fallback) instead of trusting it. The lecture's
+advice to check A to E before blaming the model is consistent with that: on this system the damage
+came from retrieval and sources, not from the generation step.
