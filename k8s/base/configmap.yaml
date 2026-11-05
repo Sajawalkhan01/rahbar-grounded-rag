@@ -19,7 +19,7 @@ data:
   # Facts and JSON belong at 0 to 0.3: a low value keeps the answer close to the evidence.
   TEMPERATURE: "0.1"
   TOP_K: "5"
-  RELEVANCE_FLOOR: "0.70"              # measured: declined questions 0.59-0.60, plain answerable >= 0.756
+  RELEVANCE_FLOOR: "0.0"               # DEMO ONLY (reverted next): measured: declined questions 0.59-0.60, plain answerable >= 0.756
   CACHE_THRESHOLD: "0.94"              # lowest value with zero false hits (0.92 served clause 1.22 for 1.21)
   CACHE_TTL_SECONDS: "86400"
   # --- backing services ---
