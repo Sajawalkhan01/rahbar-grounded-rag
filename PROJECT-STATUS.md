@@ -1,6 +1,6 @@
 # Project status
 
-Updated 5 Nov 2026. Status words mean exactly this:
+Updated 5 Nov 2026 (evening). Status words mean exactly this:
 
 * **VERIFIED**: I ran it and saw the result (the evidence is named).
 * **WRITTEN**: the code or file exists and unit tests pass, but it has not been run for real.
@@ -24,11 +24,12 @@ Updated 5 Nov 2026. Status words mean exactly this:
 | Kubernetes | delete a pod, scale, rollout, rollback, persistence | VERIFIED | `docs/evidence/09` to `14` |
 | Kubernetes | resources justified with `kubectl top` | VERIFIED | `05`, `16-indexer-memory.txt`, `ENGINEERING-NOTES.md` question 4 |
 | CI | lint, test (coverage 60%+), manifests, build | VERIFIED | green on GitHub |
-| CI | Trivy scan, e2e-eval | IN PROGRESS | fixes pushed for both; see the GitHub run |
-| CD | test, build-push, deploy, smoke | BLOCKED | runs only on a merge to `main`; Docker Hub secrets are set |
+| CI | Trivy scan, e2e-eval | VERIFIED | all 10 jobs green on `dev` (pull request #1): scans clean after base-image, FastAPI/starlette and pdfplumber updates; e2e-eval passes on kind |
+| CD | test, build-push, deploy, smoke | VERIFIED | run `42039241137` on the merge of pull request #2: test, three images pushed by commit SHA, deploy to an ephemeral kind cluster, rollout status and smoke test all green (the run on #1 failed on the Ollama connection, fixed by #2) |
 | Docs | README, CORPUS, PIPELINE, FAILURE-ANALYSIS, ENGINEERING-NOTES, AI-USAGE, DEMO, ADRs 0001 to 0005 | WRITTEN | |
-| Evidence | UI screenshots (`08`) | BLOCKED | the student's browser: http://rahbar.local:8080 |
-| Evidence | branch protection, blocked PR, green PR (`01` to `03`) | BLOCKED | GitHub screenshots by the student |
+| Evidence | UI screenshots (`08`) and branch protection (`01`) | VERIFIED | `docs/evidence/08-ui-answer.png`, `08-ui-abstain.png`, `01-branch-protection.png` |
+| Evidence | blocked PR and green PR (`02`, `03`) | BLOCKED | screenshots of pull request #1 before and after approval |
+| Review | pull requests into `main` reviewed by the second team member | VERIFIED | #1 and #2 approved by abdy879 |
 
 ## Things only the student can do
 
