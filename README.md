@@ -176,6 +176,11 @@ CI fails when recall@5 drops more than 5 points below `eval/baseline.json`, when
 question is answered from context, or when citation validity falls below 95%. Numbers and method:
 [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
+Measured on the live stack (hosted model, cold cache): recall@3 1.00, recall@5 1.00, citation validity
+1.00 over 28 citations, 0 of 3 must-abstain questions answered, 0 false abstentions
+([`eval/results.json`](eval/results.json)). Four stages were broken on purpose to see what the metrics
+show: [`docs/FAILURE-ANALYSIS.md`](docs/FAILURE-ANALYSIS.md).
+
 ## CI/CD and branches
 
 `main` is protected (pull request, one approval, passing checks, no direct pushes); work happens on

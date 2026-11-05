@@ -193,8 +193,11 @@ lowest plain answerable question (0.756). Passages that contain the question's e
 relevant whatever their score, because embeddings blur those strings (0.64 to 0.68 against the floor).
 Below the floor the API declines **without calling the model**. `a03` is the honest weak spot: the
 corpus does mention transport, so its similarity (0.760) is above any workable floor and the decision
-falls to the model's `answered_from_context`; whether that holds is measured by the eval gate and is
-reported in `eval/results.json`, not assumed.
+falls to the model's `answered_from_context`. Measured on the live stack (below): the hosted model
+declined it. A second rescue was added after the first live run: `e02` (the Late Registration Fee, a table
+cell reading "Late Registration Fee/Freeze Fee") scored 0.667 and was wrongly declined before the model
+saw it, so a passage that contains three consecutive content words of the question also counts as relevant
+(`api/app/services/answer.py`, `_phrases`). A single shared word is not enough; a test covers both.
 
 ## Semantic cache threshold
 
@@ -226,3 +229,27 @@ remove (`invalid_citations_removed`). Abstention correctness must be 1.0. The CI
 drops more than 5 points below `eval/baseline.json`, when any must-abstain question is answered, or when
 citation validity is below 95%. Recall is worst for exact-term questions when dense-only (0.67), which is
 why retrieval is hybrid; the lecture technique that addresses it is hybrid search.
+
+## Final measured results (live stack)
+
+Run through the Ingress on minikube with the 572-chunk index, `LLM_PROVIDER=hosted` (Groq,
+`openai/gpt-oss-20b`, temperature 0.1), embeddings from Ollama `nomic-embed-text`, Redis cache emptied
+first so no answer came from the cache (`eval/results.json`, 21 questions):
+
+| Metric | Result |
+| --- | ---: |
+| recall@3, recall@5 (all 18 answerable questions) | 1.00, 1.00 |
+| recall@5 by type: ordinary, version, exact term, injection | 1.00 each |
+| citation validity (28 citations checked) | 1.00 |
+| must-abstain questions answered | 0 of 3 |
+| false abstentions (answerable but declined) | 0 of 18 |
+| slowest question | 25 s (rate-limit waits on the free tier) |
+
+What these numbers do and do not say. The golden set is small, so 1.00 means "no miss found", not
+"cannot miss". Recall was already 1.00 for the hybrid retriever before generation was available; the
+generation-side numbers (citations, abstention, false abstentions) are the ones that needed the model,
+and two real defects were found by this run and fixed: the floor wrongly declining a fee-table question
+(above) and the hosted client giving up on a rate limit instead of waiting for it. The earlier attempt with
+the local CPU model (`llama3.2:3b`, about 2 tokens per second) declined to answer from a correct passage,
+which is why the hosted mode is what produced these figures. The default mode in the ConfigMap remains
+`ollama-host`; the hosted mode is selected by the `dev-hosted` and `prod` overlays.

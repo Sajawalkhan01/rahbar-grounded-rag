@@ -1,6 +1,6 @@
 # Project status
 
-Updated 4 Nov 2026. Status words mean exactly this:
+Updated 5 Nov 2026. Status words mean exactly this:
 
 * **VERIFIED**: I ran it and saw the result (the evidence is named).
 * **WRITTEN**: the code or file exists and unit tests pass, but it has not been run for real.
@@ -12,21 +12,23 @@ Updated 4 Nov 2026. Status words mean exactly this:
 | Area | Requirement | Status | Evidence / note |
 | --- | --- | --- | --- |
 | Corpus | 9 public documents, 7 properties, `sources.yaml`, `MANIFEST.md` with SHA-256 | VERIFIED | `corpus/fetch.py` downloaded all 9; `docs/CORPUS.md` |
-| Corpus | OCR of scanned PDFs | VERIFIED | 24 + 8 pages OCR'd; clause numbers of the 2023 rules recovered |
-| Indexer | extract, clean, chunk, embed, store | WRITTEN | 72 unit tests; real index build in progress |
-| Indexer | three chunk configurations measured | TODO | `eval/chunk_experiment.py` is running |
-| API | hybrid retrieval, version filter, floor, cache, validation, citations | WRITTEN | 85 unit tests, 93% coverage; no real model yet |
-| API | embedding-pin guardrail in `/readyz` | WRITTEN | unit-tested; cluster demo TODO |
-| Eval | golden set (21 questions), metrics, gate | WRITTEN | 18 tests; no measured numbers yet |
-| Docker | three images build, non-root | VERIFIED | built locally and in CI |
-| Kubernetes | all objects, probes, HPA, NetworkPolicies, overlays | WRITTEN | render and pass `kubeconform -strict` (CI); not applied to a cluster yet |
-| Kubernetes | deploy, index, ask, delete a pod, scale, rollout, rollback | TODO | |
-| CI | lint, test (coverage 60%+), manifests, build | VERIFIED | first GitHub run on `dev`: all green |
-| CI | Trivy scan, e2e-eval | IN PROGRESS | see below |
-| CD | test, build-push, deploy, smoke | BLOCKED | needs Docker Hub secrets (below) and a merge to `main` |
-| Docs | ADRs 0001, 0003, 0004, 0005; CORPUS | WRITTEN | |
-| Docs | ADR 0002, PIPELINE, FAILURE-ANALYSIS, ENGINEERING-NOTES, AI-USAGE, README | TODO | need measured numbers |
-| Evidence | 10 screenshots / outputs | TODO / BLOCKED | some need the student's browser or GitHub |
+| Corpus | OCR of scanned PDFs | VERIFIED | 24 + 8 pages OCR'd in the cluster Job log |
+| Indexer | extract, clean, chunk, embed, store as a Job | VERIFIED | 77 tests; Job indexed 572 chunks in 4,195 s on minikube |
+| Indexer | three chunk configurations measured | VERIFIED | `eval/chunk_experiment_results.json`, `docs/PIPELINE.md`, ADR 0002 |
+| API | hybrid retrieval, version filter, floor, cache, validation, citations | VERIFIED | 98 tests; answered, cached and declined on the live stack |
+| API | embedding-pin guardrail in `/readyz` | VERIFIED | `docs/evidence/10-embed-mismatch.txt` |
+| Eval | golden set (21 questions), metrics, gate | VERIFIED | `eval/results.json`: recall@5 1.00, citation validity 1.00, 0 false abstentions, 0 must-abstain answered |
+| Failure analysis | four stages broken on purpose | VERIFIED | A, B, C, E in `docs/FAILURE-ANALYSIS.md`; D and F not run |
+| Docker | three images build, non-root, no fixable HIGH/CRITICAL | VERIFIED | local Trivy scan clean after the ui fix |
+| Kubernetes | all objects, probes, HPA, NetworkPolicies, overlays | VERIFIED | rendered and applied on minikube; evidence 04 to 15 |
+| Kubernetes | delete a pod, scale, rollout, rollback, persistence | VERIFIED | `docs/evidence/09` to `14` |
+| Kubernetes | resources justified with `kubectl top` | VERIFIED | `05`, `16-indexer-memory.txt`, `ENGINEERING-NOTES.md` question 4 |
+| CI | lint, test (coverage 60%+), manifests, build | VERIFIED | green on GitHub |
+| CI | Trivy scan, e2e-eval | IN PROGRESS | fixes pushed for both; see the GitHub run |
+| CD | test, build-push, deploy, smoke | BLOCKED | runs only on a merge to `main`; Docker Hub secrets are set |
+| Docs | README, CORPUS, PIPELINE, FAILURE-ANALYSIS, ENGINEERING-NOTES, AI-USAGE, DEMO, ADRs 0001 to 0005 | WRITTEN | |
+| Evidence | UI screenshots (`08`) | BLOCKED | the student's browser: http://rahbar.local:8080 |
+| Evidence | branch protection, blocked PR, green PR (`01` to `03`) | BLOCKED | GitHub screenshots by the student |
 
 ## Things only the student can do
 
