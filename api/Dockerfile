@@ -9,6 +9,8 @@ RUN /opt/venv/bin/pip install -r /tmp/requirements.txt
 
 FROM python:3.12.11-slim-bookworm
 ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+# Take the fixed versions of the base image's own packages (openssl, gnutls, krb5 ...).
+RUN apt-get update && apt-get -y upgrade && rm -rf /var/lib/apt/lists/*
 COPY --from=build /opt/venv /opt/venv
 WORKDIR /app
 COPY app /app/app

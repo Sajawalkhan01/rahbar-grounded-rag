@@ -12,6 +12,7 @@ ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 # OCR needs system packages, not only pip ones: tesseract for the recognition, poppler for
 # rendering PDF pages to images.
 RUN apt-get update \
+    && apt-get -y upgrade \
     && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /opt/venv /opt/venv
